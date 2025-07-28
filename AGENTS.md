@@ -20,6 +20,9 @@ This downloads a recent SDK to `~/.dotnet` which is then used by the C#
 projects.
 
 Il file so si trova nella directory so/libOpenCvSharpExtern.so ed è stato compilato su Ubuntu 24.04.
+I progetti .NET SigVerSdk e PreprocessDump usano OpenCvSharp al posto di
+SkiaSharp. Non installare il runtime di OpenCvSharp da NuGet: la libreria nativa
+viene fornita in `so` e copiata automaticamente durante la compilazione.
 
 Per eseguire i test è necessario installare l'SDK .NET 9 incluso nel repository:
 

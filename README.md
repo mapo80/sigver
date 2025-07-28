@@ -47,6 +47,11 @@ using var verifier = new SigVerSdk.SigVerifier("models/signet.onnx");
 float[] features = verifier.ExtractFeatures("data/a1.png");
 ```
 
+The library relies on OpenCvSharp for image processing. The native component
+`libOpenCvSharpExtern.so` is provided under the `so` directory and is copied to
+the output folders of the .NET projects. If the file cannot be found at runtime
+add the `so` directory to `LD_LIBRARY_PATH`.
+
 `ExtractFeatures` now mirrors the Python preprocessing pipeline. Images are
 centered on a 1360×840 canvas, cleaned with Otsu thresholding, resized to
 170×242 and then cropped to 150×220 before the model is invoked. The method also

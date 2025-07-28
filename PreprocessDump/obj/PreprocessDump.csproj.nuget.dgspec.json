@@ -99,13 +99,10 @@
               "target": "Package",
               "version": "[1.17.3, )"
             },
-            "SkiaSharp": {
+            "OpenCvSharp4": {
+              "include": "Compile, Build, ContentFiles, Analyzers, BuildTransitive",
               "target": "Package",
-              "version": "[3.119.0, )"
-            },
-            "SkiaSharp.NativeAssets.Linux": {
-              "target": "Package",
-              "version": "[3.119.0, )"
+              "version": "[4.11.0.20250507, )"
             }
           },
           "imports": [

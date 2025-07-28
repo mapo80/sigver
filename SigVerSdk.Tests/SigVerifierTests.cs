@@ -5,7 +5,7 @@ using System.Linq;
 using Xunit;
 using SigVerSdk;
 using System.Diagnostics;
-using SkiaSharp;
+using OpenCvSharp;
 
 namespace SigVerSdk.Tests;
 
@@ -95,16 +95,16 @@ public class SigVerifierTests
         using var verifier = new SigVerifier(modelPath);
         verifier.SavePreprocessed(dataImg, dotnetFile);
 
-        using var pyBmp = SKBitmap.Decode(pyFile)!;
-        using var netBmp = SKBitmap.Decode(dotnetFile)!;
+        using var pyMat = Cv2.ImRead(pyFile, ImreadModes.Grayscale);
+        using var netMat = Cv2.ImRead(dotnetFile, ImreadModes.Grayscale);
 
-        Assert.Equal(pyBmp.Width, netBmp.Width);
-        Assert.Equal(pyBmp.Height, netBmp.Height);
-        for (int y = 0; y < pyBmp.Height; y++)
+        Assert.Equal(pyMat.Width, netMat.Width);
+        Assert.Equal(pyMat.Height, netMat.Height);
+        for (int y = 0; y < pyMat.Rows; y++)
         {
-            for (int x = 0; x < pyBmp.Width; x++)
+            for (int x = 0; x < pyMat.Cols; x++)
             {
-                Assert.Equal(pyBmp.GetPixel(x, y), netBmp.GetPixel(x, y));
+                Assert.Equal(pyMat.At<byte>(y, x), netMat.At<byte>(y, x));
             }
         }
     }

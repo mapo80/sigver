@@ -11,4 +11,11 @@
     <ProjectReference Include="..\SigVerSdk\SigVerSdk.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\so\libOpenCvSharpExtern.so">
+      <Link>libOpenCvSharpExtern.so</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

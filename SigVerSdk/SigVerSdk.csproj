@@ -7,9 +7,15 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.17.3" />
-    <PackageReference Include="SkiaSharp" Version="3.119.0" />
-    <!-- Include native SkiaSharp binaries for Linux so tests can run -->
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
+    <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507">
+      <ExcludeAssets>native;runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\so\libOpenCvSharpExtern.so">
+      <Link>libOpenCvSharpExtern.so</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

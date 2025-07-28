@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
-using SkiaSharp;
+using OpenCvSharp;
 
 namespace SigVerSdk;
 
@@ -11,38 +12,53 @@ public class SigVerifier : IDisposable
 {
     private readonly InferenceSession _session;
 
-    private static readonly SKImageInfo CanvasInfo = new(1360, 840, SKColorType.Gray8, SKAlphaType.Opaque);
+    private const int CanvasWidth = 1360;
+    private const int CanvasHeight = 840;
     private const int ResizeWidth = 242;
     private const int ResizeHeight = 170;
+
+    static SigVerifier()
+    {
+        try
+        {
+            var libPath = System.IO.Path.Combine(AppContext.BaseDirectory, "libOpenCvSharpExtern.so");
+            if (System.IO.File.Exists(libPath))
+                NativeLibrary.Load(libPath);
+        }
+        catch
+        {
+            // ignore if loading fails, rely on system paths
+        }
+    }
 
     public SigVerifier(string modelPath)
     {
         _session = new InferenceSession(modelPath);
     }
 
-    private static SKBitmap Preprocess(SKBitmap bitmap)
+    private static Mat Preprocess(Mat bitmap)
     {
-        using var gray = new SKBitmap(bitmap.Width, bitmap.Height, SKColorType.Gray8, SKAlphaType.Opaque);
-        for (int y = 0; y < bitmap.Height; y++)
+        Mat gray;
+        if (bitmap.Channels() == 1)
+            gray = bitmap.Clone();
+        else
         {
-            for (int x = 0; x < bitmap.Width; x++)
-            {
-                var c = bitmap.GetPixel(x, y);
-                byte l = (byte)(0.299f * c.Red + 0.587f * c.Green + 0.114f * c.Blue);
-                gray.SetPixel(x, y, new SKColor(l, l, l));
-            }
+            gray = new Mat();
+            Cv2.CvtColor(bitmap, gray, ColorConversionCodes.BGR2GRAY);
         }
 
-        byte thr = OtsuThreshold(gray);
+        byte thr = (byte)Cv2.Threshold(gray, new Mat(), 0, 255, ThresholdTypes.Otsu);
 
-        using var blurred = GaussianBlur(gray, 2f);
-        int minR = blurred.Height, maxR = -1, minC = blurred.Width, maxC = -1;
+        using var blurred = new Mat();
+        Cv2.GaussianBlur(gray, blurred, new Size(0, 0), 2);
+
+        int minR = blurred.Rows, maxR = -1, minC = blurred.Cols, maxC = -1;
         long sumR = 0, sumC = 0, count = 0;
-        for (int y = 0; y < blurred.Height; y++)
+        for (int y = 0; y < blurred.Rows; y++)
         {
-            for (int x = 0; x < blurred.Width; x++)
+            for (int x = 0; x < blurred.Cols; x++)
             {
-                byte val = blurred.GetPixel(x, y).Red;
+                byte val = blurred.At<byte>(y, x);
                 if (val <= thr)
                 {
                     if (y < minR) minR = y;
@@ -55,109 +71,58 @@ public class SigVerifier : IDisposable
                 }
             }
         }
+
         if (count == 0)
             throw new InvalidOperationException("Signature appears to be blank");
 
         int rCenter = (int)(sumR / (double)count) - minR;
         int cCenter = (int)(sumC / (double)count) - minC;
 
-        var subsetRect = SKRectI.Create(minC, minR, maxC - minC + 1, maxR - minR + 1);
-        using var cropped = new SKBitmap(subsetRect.Width, subsetRect.Height, SKColorType.Gray8, SKAlphaType.Opaque);
-        gray.ExtractSubset(cropped, subsetRect);
+        var subsetRect = new Rect(minC, minR, maxC - minC + 1, maxR - minR + 1);
+        using var cropped = new Mat(gray, subsetRect);
 
-        var canvas = new SKBitmap(CanvasInfo);
-        canvas.Erase(SKColors.White);
-        int rStart = CanvasInfo.Height / 2 - rCenter;
-        int cStart = CanvasInfo.Width / 2 - cCenter;
+        var canvas = new Mat(CanvasHeight, CanvasWidth, MatType.CV_8UC1, Scalar.All(255));
+        int rStart = CanvasHeight / 2 - rCenter;
+        int cStart = CanvasWidth / 2 - cCenter;
         if (rStart < 0) rStart = 0;
         if (cStart < 0) cStart = 0;
-        using (var cv = new SKCanvas(canvas))
-            cv.DrawBitmap(cropped, cStart, rStart);
+        var roi = new Rect(cStart, rStart, Math.Min(cropped.Cols, CanvasWidth - cStart), Math.Min(cropped.Rows, CanvasHeight - rStart));
+        var srcRoi = new Rect(0, 0, roi.Width, roi.Height);
+        cropped[srcRoi].CopyTo(new Mat(canvas, roi));
 
-        for (int y = 0; y < canvas.Height; y++)
+        for (int y = 0; y < canvas.Rows; y++)
         {
-            for (int x = 0; x < canvas.Width; x++)
+            for (int x = 0; x < canvas.Cols; x++)
             {
-                var v = canvas.GetPixel(x, y).Red;
+                byte v = canvas.At<byte>(y, x);
                 if (v > thr) v = 255;
-                canvas.SetPixel(x, y, new SKColor((byte)(255 - v), (byte)(255 - v), (byte)(255 - v)));
+                canvas.Set<byte>(y, x, (byte)(255 - v));
             }
         }
 
-        using var resized = canvas.Resize(new SKImageInfo(ResizeWidth, ResizeHeight), SKFilterQuality.High)
-            ?? throw new InvalidOperationException("Failed to resize image");
-        var cropRect = SKRectI.Create((ResizeWidth - 220) / 2, (ResizeHeight - 150) / 2, 220, 150);
-        var finalBmp = new SKBitmap(cropRect.Width, cropRect.Height, SKColorType.Gray8, SKAlphaType.Opaque);
-        resized.ExtractSubset(finalBmp, cropRect);
-        return finalBmp;
+        using var resized = new Mat();
+        Cv2.Resize(canvas, resized, new Size(ResizeWidth, ResizeHeight), 0, 0, InterpolationFlags.Lanczos4);
+
+        var cropRect = new Rect((ResizeWidth - 220) / 2, (ResizeHeight - 150) / 2, 220, 150);
+        var finalMat = new Mat(resized, cropRect).Clone();
+        canvas.Dispose();
+        gray.Dispose();
+        return finalMat;
     }
 
-    /// <summary>
-    /// Saves the preprocessed grayscale image used for feature extraction.
-    /// </summary>
-    /// <param name="inputPath">Path to the original image.</param>
-    /// <param name="outputPath">Where to save the processed 150x220 image.</param>
     public void SavePreprocessed(string inputPath, string outputPath)
     {
-        using var bmp = SKBitmap.Decode(inputPath) ??
+        using var bmp = Cv2.ImRead(inputPath, ImreadModes.Color);
+        if (bmp.Empty())
             throw new ArgumentException($"Unable to load image '{inputPath}'");
         using var pre = Preprocess(bmp);
-        using var image = SKImage.FromBitmap(pre);
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        using var fs = System.IO.File.OpenWrite(outputPath);
-        data.SaveTo(fs);
-    }
-
-    private static byte OtsuThreshold(SKBitmap gray)
-    {
-        long[] hist = new long[256];
-        for (int y = 0; y < gray.Height; y++)
-        {
-            for (int x = 0; x < gray.Width; x++)
-            {
-                hist[gray.GetPixel(x, y).Red]++;
-            }
-        }
-        int total = gray.Width * gray.Height;
-        double sum = 0;
-        for (int t = 0; t < 256; t++) sum += t * hist[t];
-        double sumB = 0, wB = 0, wF = 0, varMax = 0;
-        int threshold = 0;
-        for (int t = 0; t < 256; t++)
-        {
-            wB += hist[t];
-            if (wB == 0) continue;
-            wF = total - wB;
-            if (wF == 0) break;
-            sumB += t * hist[t];
-            double mB = sumB / wB;
-            double mF = (sum - sumB) / wF;
-            double varBetween = wB * wF * (mB - mF) * (mB - mF);
-            if (varBetween > varMax)
-            {
-                varMax = varBetween;
-                threshold = t;
-            }
-        }
-        return (byte)threshold;
-    }
-
-    private static SKBitmap GaussianBlur(SKBitmap src, float sigma)
-    {
-        var info = new SKImageInfo(src.Width, src.Height, src.ColorType, src.AlphaType);
-        using var surface = SKSurface.Create(info);
-        var paint = new SKPaint { ImageFilter = SKImageFilter.CreateBlur(sigma, sigma, SKShaderTileMode.Clamp) };
-        surface.Canvas.DrawBitmap(src, 0, 0, paint);
-        surface.Canvas.Flush();
-        using var image = surface.Snapshot();
-        var dst = new SKBitmap(info);
-        image.ReadPixels(dst.Info, dst.GetPixels(), dst.Info.RowBytes, 0, 0);
-        return dst;
+        Cv2.ImWrite(outputPath, pre);
     }
 
     public float[] ExtractFeatures(string imagePath)
     {
-        using var bitmap = SKBitmap.Decode(imagePath) ??
+        using var bitmap = Cv2.ImRead(imagePath, ImreadModes.Color);
+        if (bitmap.Empty())
             throw new ArgumentException($"Unable to load image '{imagePath}'");
         using var pre = Preprocess(bitmap);
         var input = new DenseTensor<float>(new[] { 1, 1, 150, 220 });
@@ -165,7 +130,7 @@ public class SigVerifier : IDisposable
         {
             for (int x = 0; x < 220; x++)
             {
-                input[0, 0, y, x] = pre.GetPixel(x, y).Red / 255f;
+                input[0, 0, y, x] = pre.At<byte>(y, x) / 255f;
             }
         }
         var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor("input", input) };
@@ -176,13 +141,6 @@ public class SigVerifier : IDisposable
         return output;
     }
 
-    /// <summary>
-    /// Compares two signatures and returns true when the candidate is
-    /// considered a forgery of the reference.
-    /// </summary>
-    /// <param name="referencePath">Path to a genuine reference signature.</param>
-    /// <param name="candidatePath">Path to the signature to verify.</param>
-    /// <param name="threshold">Distance threshold used to decide if the signature is forged.</param>
     public bool IsForgery(string referencePath, string candidatePath, float threshold = 1.5f)
     {
         var refFeatures = ExtractFeatures(referencePath);
