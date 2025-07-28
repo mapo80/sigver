@@ -84,7 +84,9 @@ def load_features(session, image_path):
 session = ort.InferenceSession(os.path.join('models', 'signet.onnx'), providers=['CPUExecutionProvider'])
 
 def distance(feat1, feat2):
-    return float(np.linalg.norm(feat1 - feat2))
+    feat1 = feat1 / np.linalg.norm(feat1)
+    feat2 = feat2 / np.linalg.norm(feat2)
+    return float(1 - np.dot(feat1, feat2))
 
 def dotnet_distance(ref_path, cand_path):
     cmd = ["dotnet", "FeatureDist/bin/Release/net9.0/FeatureDist.dll", ref_path, cand_path]
@@ -106,9 +108,9 @@ for pair_list, typ in [(GENUINE_FORGED, 'forged'), (GENUINE_GENUINE, 'genuine')]
         feat1 = load_features(session, p1)
         feat2 = load_features(session, p2)
         py_dist = distance(feat1, feat2)
-        py_forg = py_dist > (0.8 if typ=='forged' else 6.0)
+        py_forg = py_dist > 0.35
         dot_dist = dotnet_distance(p1, p2)
-        dot_forg = dot_dist > (0.8 if typ=='forged' else 6.0)
+        dot_forg = dot_dist > 0.35
         results.append([
             f1, f2,
             py_forg, f"{py_dist:.4f}",

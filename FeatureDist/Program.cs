@@ -13,11 +13,7 @@ var refPath = args[0];
 var candPath = args[1];
 var refFeat = verifier.ExtractFeatures(refPath);
 var candFeat = verifier.ExtractFeatures(candPath);
-double sum = 0.0;
-for (int i = 0; i < refFeat.Length; i++)
-{
-    double diff = refFeat[i] - candFeat[i];
-    sum += diff * diff;
-}
-var dist = Math.Sqrt(sum);
+SigVerifier.Normalize(refFeat);
+SigVerifier.Normalize(candFeat);
+var dist = SigVerifier.CosineDistance(refFeat, candFeat);
 Console.WriteLine(dist.ToString(System.Globalization.CultureInfo.InvariantCulture));

@@ -304,8 +304,8 @@ behaved as expected and how long it took.
 
 ### Detailed test report
 
-All 30 forged comparisons were correctly detected using a threshold of 0.8. All
-30 genuine comparisons were accepted with a threshold of 6.0. The average
+All 30 forged comparisons were correctly detected using a threshold of 0.35. All
+30 genuine comparisons were accepted with the same threshold. The average
 verification time was about 18.8 ms for forged pairs and 22.5 ms for genuine
 pairs.
 
@@ -313,8 +313,8 @@ pairs.
 
 The script `scripts/compare_results.py` reproduces the test pairs using both the
 Python pipeline and the C# library. It loads the ONNX model with
-`onnxruntime`, computes Euclidean distances for each pair and then calls the
-`FeatureDist` utility to obtain the distance reported by .NET. Results are
+`onnxruntime`, normalises the embeddings and computes the cosine distance for each pair.
+The script then calls the `FeatureDist` utility to obtain the distance reported by .NET. Results are
 written to `comparison.csv` with one row per comparison:
 
 ```
