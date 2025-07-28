@@ -162,6 +162,23 @@ the right.
   </tr>
 </table>
 
+### Automated C# tests
+
+The SDK includes a test suite that randomly generates signature pairs from the
+`data` directory. Each user has a folder such as `001` with genuine signatures
+and a matching folder `001_forg` with forgeries. Using xUnit, thirty pairs are
+sampled in two categories:
+
+1. **Genuine vs forged** — one genuine signature from `XXX` against one forged
+   signature from `XXX_forg`.
+2. **Genuine vs genuine** — two different genuine signatures from the same
+   folder `XXX`.
+
+Random selection uses a fixed seed so results are reproducible. The tests assert
+that forged signatures are detected and that genuine pairs match. Running
+`dotnet test` executes all sixty comparisons and logs the verification time for
+each pair.
+
 ## Test results
 
 The tables below show the outcome of running the signature verifier on 60
