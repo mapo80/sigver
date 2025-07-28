@@ -57,7 +57,7 @@ public class SigVerifierTests
             var refPath = Path.Combine(dataDir, pair.Item1);
             var candPath = Path.Combine(dataDir, pair.Item2);
             var sw = Stopwatch.StartNew();
-            var isForged = verifier.IsForgery(refPath, candPath);
+            var isForged = verifier.IsForgery(refPath, candPath, 0.35f);
             sw.Stop();
             Assert.Equal(pair.Item3, isForged);
             times.Add(sw.ElapsedMilliseconds);

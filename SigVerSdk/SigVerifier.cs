@@ -145,17 +145,29 @@ public class SigVerifier : IDisposable
         return output;
     }
 
-    public bool IsForgery(string referencePath, string candidatePath, float threshold = 1.5f)
+    public static void Normalize(Span<float> v)
+    {
+        double n = 0;
+        foreach (var x in v) n += x * x;
+        n = Math.Sqrt(n);
+        for (int i = 0; i < v.Length; i++) v[i] /= (float)n;
+    }
+
+    public static double CosineDistance(ReadOnlySpan<float> a, ReadOnlySpan<float> b)
+    {
+        double dot = 0;
+        for (int i = 0; i < a.Length; i++) dot += a[i] * b[i];
+        return 1 - dot;
+    }
+
+    public bool IsForgery(string referencePath, string candidatePath, float threshold = 0.35f)
     {
         var refFeatures = ExtractFeatures(referencePath);
         var candFeatures = ExtractFeatures(candidatePath);
-        double sum = 0.0;
-        for (int i = 0; i < refFeatures.Length; i++)
-        {
-            double diff = refFeatures[i] - candFeatures[i];
-            sum += diff * diff;
-        }
-        var distance = Math.Sqrt(sum);
+        Normalize(refFeatures);
+        Normalize(candFeatures);
+
+        double distance = CosineDistance(refFeatures, candFeatures);
         return distance > threshold;
     }
 
