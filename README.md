@@ -176,9 +176,10 @@ the right.
 ### Preprocessing comparison
 
 The verifier preprocesses every input image before running the ONNX model. The
-Python library and the C# implementation now follow the same steps: centering
-the signature on an 840×1360 canvas, removing the background with Otsu
-thresholding, resizing to 170×242 and cropping a 150×220 window. The tables
+Python library and the C# implementation follow the same sequence of
+operations: a light Gaussian blur is applied, the signature is centred on an
+840×1360 canvas, background pixels are removed using Otsu thresholding, the
+image is resized to 170×242 and finally a 150×220 crop is taken. The tables
 below show the resulting images for those involved in the failing test as well
 as ten examples from passing tests.
 
