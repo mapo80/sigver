@@ -13,6 +13,11 @@ SigVer provides neural models and training scripts for verifying handwritten sig
    python convert_to_onnx.py
    ```
    The script produces `models/signet.onnx` and `models/signet_f_lambda_0.95.onnx`.
+3. Install the .NET SDK (required to build `SigVerSdk`) if it is not already
+   available:
+   ```bash
+   ./dotnet-install.sh --channel 8.0
+   ```
 
 ## Using PyTorch models
 
@@ -43,6 +48,12 @@ float[] features = verifier.ExtractFeatures("data/a1.png");
 ```
 
 The unit tests in `SigVerSdk.Tests` illustrate a simple verification scenario comparing two signatures.
+
+If the required SDK is missing, run the provided install script before building:
+
+```bash
+./dotnet-install.sh --channel 8.0
+```
 
 ## Data preprocessing
 
