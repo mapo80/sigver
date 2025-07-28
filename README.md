@@ -314,68 +314,75 @@ pairs.
 Il seguente test ripete le 60 coppie dei test automatici confrontando i
 risultati del modello PyTorch con quelli ottenuti usando la libreria .NET.
 
-| Nome file 1 | Nome file 2 | Visualizzazione immagine 1 | Visualizzazione immagine 2 | Is forged python | Valore similarità python | Is forged dotnet | Valore similarità dotnet | Discrepanza | Differenza |
-|--- | --- | --- | --- | --- | --- | --- | --- | --- | ---|
-| 004_03.PNG | 0105004_04.png | ![](data/004_03.PNG) | ![](data/0105004_04.png) | True | 16.3830 | True | 15.7207 | False | -0.6623 |
-| 001_12.PNG | 0119001_04.png | ![](data/001_12.PNG) | ![](data/0119001_04.png) | True | 19.4826 | True | 20.7637 | False | 1.2812 |
-| 004_13.PNG | 0124004_02.png | ![](data/004_13.PNG) | ![](data/0124004_02.png) | True | 15.6768 | True | 14.6027 | False | -1.0741 |
-| 004_16.PNG | 0103004_02.png | ![](data/004_16.PNG) | ![](data/0103004_02.png) | True | 12.1442 | True | 12.4284 | False | 0.2842 |
-| 004_03.PNG | 0124004_01.png | ![](data/004_03.PNG) | ![](data/0124004_01.png) | True | 16.1021 | True | 14.6816 | False | -1.4204 |
-| 001_12.PNG | 0201001_01.png | ![](data/001_12.PNG) | ![](data/0201001_01.png) | True | 13.6359 | True | 13.9346 | False | 0.2987 |
-| 001_24.PNG | 0201001_04.png | ![](data/001_24.PNG) | ![](data/0201001_04.png) | True | 17.2931 | True | 17.6566 | False | 0.3635 |
-| 001_10.PNG | 0119001_02.png | ![](data/001_10.PNG) | ![](data/0119001_02.png) | True | 19.5469 | True | 19.7448 | False | 0.1979 |
-| 004_21.PNG | 0103004_02.png | ![](data/004_21.PNG) | ![](data/0103004_02.png) | True | 14.6901 | True | 14.8990 | False | 0.2089 |
-| 002_08.PNG | 0108002_03.png | ![](data/002_08.PNG) | ![](data/0108002_03.png) | True | 14.4351 | True | 15.2287 | False | 0.7936 |
-| 001_08.PNG | 0119001_03.png | ![](data/001_08.PNG) | ![](data/0119001_03.png) | True | 17.2683 | True | 17.9743 | False | 0.7060 |
-| 004_09.PNG | 0124004_01.png | ![](data/004_09.PNG) | ![](data/0124004_01.png) | True | 12.7404 | True | 12.7126 | False | -0.0278 |
-| 002_22.PNG | 0118002_02.png | ![](data/002_22.PNG) | ![](data/0118002_02.png) | True | 19.9099 | True | 19.1180 | False | -0.7919 |
-| 002_09.PNG | 0108002_04.png | ![](data/002_09.PNG) | ![](data/0108002_04.png) | True | 14.7753 | True | 14.8916 | False | 0.1164 |
-| 003_06.PNG | 0126003_02.png | ![](data/003_06.PNG) | ![](data/0126003_02.png) | True | 21.3653 | True | 21.0832 | False | -0.2821 |
-| 003_19.PNG | 0206003_02.png | ![](data/003_19.PNG) | ![](data/0206003_02.png) | True | 12.0499 | True | 10.7575 | False | -1.2924 |
-| 002_07.PNG | 0118002_02.png | ![](data/002_07.PNG) | ![](data/0118002_02.png) | True | 21.6597 | True | 20.7575 | False | -0.9022 |
-| 002_02.PNG | 0118002_03.png | ![](data/002_02.PNG) | ![](data/0118002_03.png) | True | 23.2524 | True | 23.9563 | False | 0.7039 |
-| 004_14.PNG | 0103004_04.png | ![](data/004_14.PNG) | ![](data/0103004_04.png) | True | 15.6272 | True | 16.2658 | False | 0.6387 |
-| 001_15.PNG | 0119001_03.png | ![](data/001_15.PNG) | ![](data/0119001_03.png) | True | 17.3196 | True | 17.5857 | False | 0.2661 |
-| 001_04.PNG | 0201001_04.png | ![](data/001_04.PNG) | ![](data/0201001_04.png) | True | 18.6162 | True | 19.2409 | False | 0.6246 |
-| 002_11.PNG | 0110002_02.png | ![](data/002_11.PNG) | ![](data/0110002_02.png) | True | 11.3638 | True | 11.7874 | False | 0.4236 |
-| 002_14.PNG | 0108002_02.png | ![](data/002_14.PNG) | ![](data/0108002_02.png) | True | 13.3674 | True | 11.8594 | False | -1.5080 |
-| 002_19.PNG | 0110002_02.png | ![](data/002_19.PNG) | ![](data/0110002_02.png) | True | 9.3250 | True | 11.3709 | False | 2.0458 |
-| 002_13.PNG | 0110002_02.png | ![](data/002_13.PNG) | ![](data/0110002_02.png) | True | 13.7178 | True | 12.8308 | False | -0.8870 |
-| 004_06.PNG | 0103004_04.png | ![](data/004_06.PNG) | ![](data/0103004_04.png) | True | 17.5406 | True | 18.1492 | False | 0.6086 |
-| 001_02.PNG | 0201001_02.png | ![](data/001_02.PNG) | ![](data/0201001_02.png) | True | 17.0238 | True | 18.1510 | False | 1.1273 |
-| 001_10.PNG | 0201001_04.png | ![](data/001_10.PNG) | ![](data/0201001_04.png) | True | 18.3920 | True | 18.9499 | False | 0.5579 |
-| 002_07.PNG | 0108002_04.png | ![](data/002_07.PNG) | ![](data/0108002_04.png) | True | 14.5009 | True | 14.8310 | False | 0.3301 |
-| 001_03.PNG | 0201001_03.png | ![](data/001_03.PNG) | ![](data/0201001_03.png) | True | 20.4896 | True | 20.8271 | False | 0.3375 |
-| 003_20.PNG | 003_17.PNG | ![](data/003_20.PNG) | ![](data/003_17.PNG) | True | 11.1909 | True | 11.6980 | False | 0.5071 |
-| 001_12.PNG | 001_14.PNG | ![](data/001_12.PNG) | ![](data/001_14.PNG) | True | 10.7147 | True | 11.8435 | False | 1.1288 |
-| 004_12.PNG | 004_17.PNG | ![](data/004_12.PNG) | ![](data/004_17.PNG) | True | 9.2202 | True | 10.0833 | False | 0.8631 |
-| 003_03.PNG | 003_16.PNG | ![](data/003_03.PNG) | ![](data/003_16.PNG) | True | 16.6307 | True | 17.1497 | False | 0.5190 |
-| 004_06.PNG | 004_22.PNG | ![](data/004_06.PNG) | ![](data/004_22.PNG) | True | 11.8592 | True | 11.9363 | False | 0.0771 |
-| 001_05.PNG | 001_19.PNG | ![](data/001_05.PNG) | ![](data/001_19.PNG) | True | 15.0637 | True | 15.2243 | False | 0.1606 |
-| 001_17.PNG | 001_11.PNG | ![](data/001_17.PNG) | ![](data/001_11.PNG) | True | 11.6331 | True | 12.5908 | False | 0.9578 |
-| 001_14.PNG | 001_10.PNG | ![](data/001_14.PNG) | ![](data/001_10.PNG) | True | 12.6687 | True | 13.8982 | False | 1.2295 |
-| 001_13.PNG | 001_08.PNG | ![](data/001_13.PNG) | ![](data/001_08.PNG) | True | 12.0260 | True | 13.1087 | False | 1.0828 |
-| 004_05.PNG | 004_10.PNG | ![](data/004_05.PNG) | ![](data/004_10.PNG) | True | 8.0390 | True | 7.3261 | False | -0.7129 |
-| 004_22.PNG | 004_19.PNG | ![](data/004_22.PNG) | ![](data/004_19.PNG) | True | 10.1360 | True | 9.0249 | False | -1.1111 |
-| 003_18.PNG | 003_15.PNG | ![](data/003_18.PNG) | ![](data/003_15.PNG) | True | 9.9472 | True | 8.3561 | False | -1.5911 |
-| 004_08.PNG | 004_15.PNG | ![](data/004_08.PNG) | ![](data/004_15.PNG) | True | 14.0461 | True | 12.5222 | False | -1.5239 |
-| 002_23.PNG | 002_15.PNG | ![](data/002_23.PNG) | ![](data/002_15.PNG) | True | 8.0709 | True | 7.6665 | False | -0.4044 |
-| 003_03.PNG | 003_17.PNG | ![](data/003_03.PNG) | ![](data/003_17.PNG) | True | 19.1025 | True | 19.5112 | False | 0.4087 |
-| 003_18.PNG | 003_21.PNG | ![](data/003_18.PNG) | ![](data/003_21.PNG) | True | 11.2242 | True | 12.7597 | False | 1.5355 |
-| 001_22.PNG | 001_24.PNG | ![](data/001_22.PNG) | ![](data/001_24.PNG) | True | 10.9567 | True | 10.1645 | False | -0.7922 |
-| 001_19.PNG | 001_10.PNG | ![](data/001_19.PNG) | ![](data/001_10.PNG) | True | 13.6858 | True | 13.2719 | False | -0.4139 |
-| 001_06.PNG | 001_03.PNG | ![](data/001_06.PNG) | ![](data/001_03.PNG) | True | 12.0618 | True | 12.3503 | False | 0.2885 |
-| 001_09.PNG | 001_04.PNG | ![](data/001_09.PNG) | ![](data/001_04.PNG) | True | 11.6209 | True | 11.1287 | False | -0.4922 |
-| 004_21.PNG | 004_22.PNG | ![](data/004_21.PNG) | ![](data/004_22.PNG) | True | 10.4205 | True | 9.9627 | False | -0.4578 |
-| 003_19.PNG | 003_23.PNG | ![](data/003_19.PNG) | ![](data/003_23.PNG) | True | 9.6581 | True | 10.1129 | False | 0.4548 |
-| 004_20.PNG | 004_02.PNG | ![](data/004_20.PNG) | ![](data/004_02.PNG) | True | 9.5944 | True | 8.9953 | False | -0.5991 |
-| 004_09.PNG | 004_19.PNG | ![](data/004_09.PNG) | ![](data/004_19.PNG) | True | 17.2339 | True | 15.4571 | False | -1.7769 |
-| 001_06.PNG | 001_11.PNG | ![](data/001_06.PNG) | ![](data/001_11.PNG) | True | 13.9185 | True | 15.0778 | False | 1.1593 |
-| 001_09.PNG | 001_01.PNG | ![](data/001_09.PNG) | ![](data/001_01.PNG) | True | 11.0500 | True | 10.4552 | False | -0.5948 |
-| 001_10.PNG | 001_16.PNG | ![](data/001_10.PNG) | ![](data/001_16.PNG) | True | 11.5675 | True | 12.3548 | False | 0.7873 |
-| 003_14.PNG | 003_21.PNG | ![](data/003_14.PNG) | ![](data/003_21.PNG) | True | 9.7459 | True | 9.1361 | False | -0.6098 |
-| 003_18.PNG | 003_14.PNG | ![](data/003_18.PNG) | ![](data/003_14.PNG) | True | 9.5309 | True | 10.6218 | False | 1.0909 |
-| 001_18.PNG | 001_05.PNG | ![](data/001_18.PNG) | ![](data/001_05.PNG) | True | 14.2329 | True | 14.7139 | False | 0.4810 |
+### Genuine vs forged
+
+| Nome file 1 | Nome file 2 | Visualizzazione immagine 1 | Visualizzazione immagine 2 | Valore reale | Is forged python | Esito python | Valore similarità python | Is forged dotnet | Esito dotnet | Valore similarità dotnet | Discrepanza | Differenza |
+|--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---|
+| 004_03.PNG | 0105004_04.png | ![](data/004_03.PNG) | ![](data/0105004_04.png) | True | True | OK | 16.3830 | True | OK | 15.7207 | False | -0.6623 |
+| 001_12.PNG | 0119001_04.png | ![](data/001_12.PNG) | ![](data/0119001_04.png) | True | True | OK | 19.4826 | True | OK | 20.7637 | False | 1.2812 |
+| 004_13.PNG | 0124004_02.png | ![](data/004_13.PNG) | ![](data/0124004_02.png) | True | True | OK | 15.6768 | True | OK | 14.6027 | False | -1.0741 |
+| 004_16.PNG | 0103004_02.png | ![](data/004_16.PNG) | ![](data/0103004_02.png) | True | True | OK | 12.1442 | True | OK | 12.4284 | False | 0.2842 |
+| 004_03.PNG | 0124004_01.png | ![](data/004_03.PNG) | ![](data/0124004_01.png) | True | True | OK | 16.1021 | True | OK | 14.6816 | False | -1.4204 |
+| 001_12.PNG | 0201001_01.png | ![](data/001_12.PNG) | ![](data/0201001_01.png) | True | True | OK | 13.6359 | True | OK | 13.9346 | False | 0.2987 |
+| 001_24.PNG | 0201001_04.png | ![](data/001_24.PNG) | ![](data/0201001_04.png) | True | True | OK | 17.2931 | True | OK | 17.6566 | False | 0.3635 |
+| 001_10.PNG | 0119001_02.png | ![](data/001_10.PNG) | ![](data/0119001_02.png) | True | True | OK | 19.5469 | True | OK | 19.7448 | False | 0.1979 |
+| 004_21.PNG | 0103004_02.png | ![](data/004_21.PNG) | ![](data/0103004_02.png) | True | True | OK | 14.6901 | True | OK | 14.8990 | False | 0.2089 |
+| 002_08.PNG | 0108002_03.png | ![](data/002_08.PNG) | ![](data/0108002_03.png) | True | True | OK | 14.4351 | True | OK | 15.2287 | False | 0.7936 |
+| 001_08.PNG | 0119001_03.png | ![](data/001_08.PNG) | ![](data/0119001_03.png) | True | True | OK | 17.2683 | True | OK | 17.9743 | False | 0.7060 |
+| 004_09.PNG | 0124004_01.png | ![](data/004_09.PNG) | ![](data/0124004_01.png) | True | True | OK | 12.7404 | True | OK | 12.7126 | False | -0.0278 |
+| 002_22.PNG | 0118002_02.png | ![](data/002_22.PNG) | ![](data/0118002_02.png) | True | True | OK | 19.9099 | True | OK | 19.1180 | False | -0.7919 |
+| 002_09.PNG | 0108002_04.png | ![](data/002_09.PNG) | ![](data/0108002_04.png) | True | True | OK | 14.7753 | True | OK | 14.8916 | False | 0.1164 |
+| 003_06.PNG | 0126003_02.png | ![](data/003_06.PNG) | ![](data/0126003_02.png) | True | True | OK | 21.3653 | True | OK | 21.0832 | False | -0.2821 |
+| 003_19.PNG | 0206003_02.png | ![](data/003_19.PNG) | ![](data/0206003_02.png) | True | True | OK | 12.0499 | True | OK | 10.7575 | False | -1.2924 |
+| 002_07.PNG | 0118002_02.png | ![](data/002_07.PNG) | ![](data/0118002_02.png) | True | True | OK | 21.6597 | True | OK | 20.7575 | False | -0.9022 |
+| 002_02.PNG | 0118002_03.png | ![](data/002_02.PNG) | ![](data/0118002_03.png) | True | True | OK | 23.2524 | True | OK | 23.9563 | False | 0.7039 |
+| 004_14.PNG | 0103004_04.png | ![](data/004_14.PNG) | ![](data/0103004_04.png) | True | True | OK | 15.6272 | True | OK | 16.2658 | False | 0.6387 |
+| 001_15.PNG | 0119001_03.png | ![](data/001_15.PNG) | ![](data/0119001_03.png) | True | True | OK | 17.3196 | True | OK | 17.5857 | False | 0.2661 |
+| 001_04.PNG | 0201001_04.png | ![](data/001_04.PNG) | ![](data/0201001_04.png) | True | True | OK | 18.6162 | True | OK | 19.2409 | False | 0.6246 |
+| 002_11.PNG | 0110002_02.png | ![](data/002_11.PNG) | ![](data/0110002_02.png) | True | True | OK | 11.3638 | True | OK | 11.7874 | False | 0.4236 |
+| 002_14.PNG | 0108002_02.png | ![](data/002_14.PNG) | ![](data/0108002_02.png) | True | True | OK | 13.3674 | True | OK | 11.8594 | False | -1.5080 |
+| 002_19.PNG | 0110002_02.png | ![](data/002_19.PNG) | ![](data/0110002_02.png) | True | True | OK | 9.3250 | True | OK | 11.3709 | False | 2.0458 |
+| 002_13.PNG | 0110002_02.png | ![](data/002_13.PNG) | ![](data/0110002_02.png) | True | True | OK | 13.7178 | True | OK | 12.8308 | False | -0.8870 |
+| 004_06.PNG | 0103004_04.png | ![](data/004_06.PNG) | ![](data/0103004_04.png) | True | True | OK | 17.5406 | True | OK | 18.1492 | False | 0.6086 |
+| 001_02.PNG | 0201001_02.png | ![](data/001_02.PNG) | ![](data/0201001_02.png) | True | True | OK | 17.0238 | True | OK | 18.1510 | False | 1.1273 |
+| 001_10.PNG | 0201001_04.png | ![](data/001_10.PNG) | ![](data/0201001_04.png) | True | True | OK | 18.3920 | True | OK | 18.9499 | False | 0.5579 |
+| 002_07.PNG | 0108002_04.png | ![](data/002_07.PNG) | ![](data/0108002_04.png) | True | True | OK | 14.5009 | True | OK | 14.8310 | False | 0.3301 |
+| 001_03.PNG | 0201001_03.png | ![](data/001_03.PNG) | ![](data/0201001_03.png) | True | True | OK | 20.4896 | True | OK | 20.8271 | False | 0.3375 |
+
+### Genuine vs genuine
+
+| Nome file 1 | Nome file 2 | Visualizzazione immagine 1 | Visualizzazione immagine 2 | Valore reale | Is forged python | Esito python | Valore similarità python | Is forged dotnet | Esito dotnet | Valore similarità dotnet | Discrepanza | Differenza |
+|--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---|
+| 003_20.PNG | 003_17.PNG | ![](data/003_20.PNG) | ![](data/003_17.PNG) | False | True | KO | 11.1909 | True | KO | 11.6980 | False | 0.5071 |
+| 001_12.PNG | 001_14.PNG | ![](data/001_12.PNG) | ![](data/001_14.PNG) | False | True | KO | 10.7147 | True | KO | 11.8435 | False | 1.1288 |
+| 004_12.PNG | 004_17.PNG | ![](data/004_12.PNG) | ![](data/004_17.PNG) | False | True | KO | 9.2202 | True | KO | 10.0833 | False | 0.8631 |
+| 003_03.PNG | 003_16.PNG | ![](data/003_03.PNG) | ![](data/003_16.PNG) | False | True | KO | 16.6307 | True | KO | 17.1497 | False | 0.5190 |
+| 004_06.PNG | 004_22.PNG | ![](data/004_06.PNG) | ![](data/004_22.PNG) | False | True | KO | 11.8592 | True | KO | 11.9363 | False | 0.0771 |
+| 001_05.PNG | 001_19.PNG | ![](data/001_05.PNG) | ![](data/001_19.PNG) | False | True | KO | 15.0637 | True | KO | 15.2243 | False | 0.1606 |
+| 001_17.PNG | 001_11.PNG | ![](data/001_17.PNG) | ![](data/001_11.PNG) | False | True | KO | 11.6331 | True | KO | 12.5908 | False | 0.9578 |
+| 001_14.PNG | 001_10.PNG | ![](data/001_14.PNG) | ![](data/001_10.PNG) | False | True | KO | 12.6687 | True | KO | 13.8982 | False | 1.2295 |
+| 001_13.PNG | 001_08.PNG | ![](data/001_13.PNG) | ![](data/001_08.PNG) | False | True | KO | 12.0260 | True | KO | 13.1087 | False | 1.0828 |
+| 004_05.PNG | 004_10.PNG | ![](data/004_05.PNG) | ![](data/004_10.PNG) | False | True | KO | 8.0390 | True | KO | 7.3261 | False | -0.7129 |
+| 004_22.PNG | 004_19.PNG | ![](data/004_22.PNG) | ![](data/004_19.PNG) | False | True | KO | 10.1360 | True | KO | 9.0249 | False | -1.1111 |
+| 003_18.PNG | 003_15.PNG | ![](data/003_18.PNG) | ![](data/003_15.PNG) | False | True | KO | 9.9472 | True | KO | 8.3561 | False | -1.5911 |
+| 004_08.PNG | 004_15.PNG | ![](data/004_08.PNG) | ![](data/004_15.PNG) | False | True | KO | 14.0461 | True | KO | 12.5222 | False | -1.5239 |
+| 002_23.PNG | 002_15.PNG | ![](data/002_23.PNG) | ![](data/002_15.PNG) | False | True | KO | 8.0709 | True | KO | 7.6665 | False | -0.4044 |
+| 003_03.PNG | 003_17.PNG | ![](data/003_03.PNG) | ![](data/003_17.PNG) | False | True | KO | 19.1025 | True | KO | 19.5112 | False | 0.4087 |
+| 003_18.PNG | 003_21.PNG | ![](data/003_18.PNG) | ![](data/003_21.PNG) | False | True | KO | 11.2242 | True | KO | 12.7597 | False | 1.5355 |
+| 001_22.PNG | 001_24.PNG | ![](data/001_22.PNG) | ![](data/001_24.PNG) | False | True | KO | 10.9567 | True | KO | 10.1645 | False | -0.7922 |
+| 001_19.PNG | 001_10.PNG | ![](data/001_19.PNG) | ![](data/001_10.PNG) | False | True | KO | 13.6858 | True | KO | 13.2719 | False | -0.4139 |
+| 001_06.PNG | 001_03.PNG | ![](data/001_06.PNG) | ![](data/001_03.PNG) | False | True | KO | 12.0618 | True | KO | 12.3503 | False | 0.2885 |
+| 001_09.PNG | 001_04.PNG | ![](data/001_09.PNG) | ![](data/001_04.PNG) | False | True | KO | 11.6209 | True | KO | 11.1287 | False | -0.4922 |
+| 004_21.PNG | 004_22.PNG | ![](data/004_21.PNG) | ![](data/004_22.PNG) | False | True | KO | 10.4205 | True | KO | 9.9627 | False | -0.4578 |
+| 003_19.PNG | 003_23.PNG | ![](data/003_19.PNG) | ![](data/003_23.PNG) | False | True | KO | 9.6581 | True | KO | 10.1129 | False | 0.4548 |
+| 004_20.PNG | 004_02.PNG | ![](data/004_20.PNG) | ![](data/004_02.PNG) | False | True | KO | 9.5944 | True | KO | 8.9953 | False | -0.5991 |
+| 004_09.PNG | 004_19.PNG | ![](data/004_09.PNG) | ![](data/004_19.PNG) | False | True | KO | 17.2339 | True | KO | 15.4571 | False | -1.7769 |
+| 001_06.PNG | 001_11.PNG | ![](data/001_06.PNG) | ![](data/001_11.PNG) | False | True | KO | 13.9185 | True | KO | 15.0778 | False | 1.1593 |
+| 001_09.PNG | 001_01.PNG | ![](data/001_09.PNG) | ![](data/001_01.PNG) | False | True | KO | 11.0500 | True | KO | 10.4552 | False | -0.5948 |
+| 001_10.PNG | 001_16.PNG | ![](data/001_10.PNG) | ![](data/001_16.PNG) | False | True | KO | 11.5675 | True | KO | 12.3548 | False | 0.7873 |
+| 003_14.PNG | 003_21.PNG | ![](data/003_14.PNG) | ![](data/003_21.PNG) | False | True | KO | 9.7459 | True | KO | 9.1361 | False | -0.6098 |
+| 003_18.PNG | 003_14.PNG | ![](data/003_18.PNG) | ![](data/003_14.PNG) | False | True | KO | 9.5309 | True | KO | 10.6218 | False | 1.0909 |
+| 001_18.PNG | 001_05.PNG | ![](data/001_18.PNG) | ![](data/001_05.PNG) | False | True | KO | 14.2329 | True | KO | 14.7139 | False | 0.4810 |
 
 ## Meta‑learning
 
