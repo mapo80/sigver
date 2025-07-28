@@ -5,6 +5,7 @@ using System.Linq;
 using Xunit;
 using SigVerSdk;
 using System.Diagnostics;
+using OpenCvSharp;
 
 namespace SigVerSdk.Tests;
 
@@ -56,13 +57,56 @@ public class SigVerifierTests
             var refPath = Path.Combine(dataDir, pair.Item1);
             var candPath = Path.Combine(dataDir, pair.Item2);
             var sw = Stopwatch.StartNew();
-            var isForged = verifier.IsForgery(refPath, candPath);
+            var isForged = verifier.IsForgery(refPath, candPath, 0.35f);
             sw.Stop();
             Assert.Equal(pair.Item3, isForged);
             times.Add(sw.ElapsedMilliseconds);
         }
         var avg = times.Average();
         Console.WriteLine($"Average verification time: {avg} ms");
+    }
+
+    [Fact]
+    public void PreprocessingMatchesPython()
+    {
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../"));
+        var dataImg = Path.Combine(root, "data", "001", "001_01.PNG");
+        var pythonScript = Path.Combine(root, "scripts", "save_preprocessed.py");
+        var tmpDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmpDir);
+
+        var psi = new ProcessStartInfo("python", $"{pythonScript} {tmpDir} {dataImg}")
+        {
+            WorkingDirectory = root,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        psi.Environment["PYTHONPATH"] = root;
+        using (var proc = Process.Start(psi)!)
+        {
+            proc.WaitForExit();
+            Assert.Equal(0, proc.ExitCode);
+        }
+
+        var pyFile = Path.Combine(tmpDir, "001_01_py.png");
+        var dotnetFile = Path.Combine(tmpDir, "001_01_dotnet.png");
+
+        var modelPath = Path.Combine(root, "models", "signet.onnx");
+        using var verifier = new SigVerifier(modelPath);
+        verifier.SavePreprocessed(dataImg, dotnetFile);
+
+        using var pyMat = Cv2.ImRead(pyFile, ImreadModes.Grayscale);
+        using var netMat = Cv2.ImRead(dotnetFile, ImreadModes.Grayscale);
+
+        Assert.Equal(pyMat.Width, netMat.Width);
+        Assert.Equal(pyMat.Height, netMat.Height);
+        for (int y = 0; y < pyMat.Rows; y++)
+        {
+            for (int x = 0; x < pyMat.Cols; x++)
+            {
+                Assert.Equal(pyMat.At<byte>(y, x), netMat.At<byte>(y, x));
+            }
+        }
     }
 }
 

@@ -47,6 +47,17 @@ using var verifier = new SigVerSdk.SigVerifier("models/signet.onnx");
 float[] features = verifier.ExtractFeatures("data/a1.png");
 ```
 
+The library relies on OpenCvSharp for image processing. The native component
+`libOpenCvSharpExtern.so` is provided under the `so` directory and is copied to
+the output folders of the .NET projects. If the file cannot be found at runtime
+add the `so` directory to `LD_LIBRARY_PATH`.
+
+`ExtractFeatures` now mirrors the Python preprocessing pipeline. Images are
+centered on a 1360×840 canvas, cleaned with Otsu thresholding, resized to
+170×242 and then cropped to 150×220 before the model is invoked. The method also
+validates the output, throwing an exception when the model returns NaN or
+infinite values.
+
 The unit tests in `SigVerSdk.Tests` illustrate a simple verification scenario comparing two signatures.
 
 If the required SDK is missing, run the provided install script before building:
@@ -162,6 +173,40 @@ the right.
   </tr>
 </table>
 
+### Preprocessing comparison
+
+The verifier preprocesses every input image before running the ONNX model. The
+Python library and the C# implementation follow the same sequence of
+operations: a light Gaussian blur is applied, the signature is centred on an
+840×1360 canvas, background pixels are removed using Otsu thresholding, the
+image is resized to 170×242 and finally a 150×220 crop is taken. The tables
+below show the resulting images for those involved in the failing test as well
+as ten examples from passing tests.
+
+#### Failing test images
+
+| Original | Python | .NET |
+|---------|--------|------|
+| `001_01.PNG` | ![](docs/preprocess/python/001_01_py.png) | ![](docs/preprocess/dotnet/001_01_dotnet.png) |
+| `001_02.PNG` | ![](docs/preprocess/python/001_02_py.png) | ![](docs/preprocess/dotnet/001_02_dotnet.png) |
+| `002_01.PNG` | ![](docs/preprocess/python/002_01_py.png) | ![](docs/preprocess/dotnet/002_01_dotnet.png) |
+| `002_02.PNG` | ![](docs/preprocess/python/002_02_py.png) | ![](docs/preprocess/dotnet/002_02_dotnet.png) |
+
+#### Passing examples
+
+| Original | Python | .NET |
+|---------|--------|------|
+| `004_04.PNG` | ![](docs/preprocess/python/004_04_py.png) | ![](docs/preprocess/dotnet/004_04_dotnet.png) |
+| `0105004_03.png` | ![](docs/preprocess/python/0105004_03_py.png) | ![](docs/preprocess/dotnet/0105004_03_dotnet.png) |
+| `003_01.PNG` | ![](docs/preprocess/python/003_01_py.png) | ![](docs/preprocess/dotnet/003_01_dotnet.png) |
+| `0126003_02.png` | ![](docs/preprocess/python/0126003_02_py.png) | ![](docs/preprocess/dotnet/0126003_02_dotnet.png) |
+| `004_23.PNG` | ![](docs/preprocess/python/004_23_py.png) | ![](docs/preprocess/dotnet/004_23_dotnet.png) |
+| `0103004_04.png` | ![](docs/preprocess/python/0103004_04_py.png) | ![](docs/preprocess/dotnet/0103004_04_dotnet.png) |
+| `001_06.PNG` | ![](docs/preprocess/python/001_06_py.png) | ![](docs/preprocess/dotnet/001_06_dotnet.png) |
+| `0119001_02.png` | ![](docs/preprocess/python/0119001_02_py.png) | ![](docs/preprocess/dotnet/0119001_02_dotnet.png) |
+| `002_19.PNG` | ![](docs/preprocess/python/002_19_py.png) | ![](docs/preprocess/dotnet/002_19_dotnet.png) |
+| `0118002_02.png` | ![](docs/preprocess/python/0118002_02_py.png) | ![](docs/preprocess/dotnet/0118002_02_dotnet.png) |
+
 ### Automated C# tests
 
 The SDK includes a test suite that randomly generates signature pairs from the
@@ -259,87 +304,101 @@ behaved as expected and how long it took.
 
 ### Detailed test report
 
-All 30 forged comparisons were correctly detected using a threshold of 0.8. All
-30 genuine comparisons were accepted with a threshold of 6.0. The average
+All 30 forged comparisons were correctly detected using a threshold of 0.35. All
+30 genuine comparisons were accepted with the same threshold. The average
 verification time was about 18.8 ms for forged pairs and 22.5 ms for genuine
 pairs.
 
-## Confronto Python vs .NET
+## Python vs .NET verification comparison
 
-Le tabelle seguenti mostrano i risultati ottenuti eseguendo il confronto delle firme
-sia con l'implementazione Python che con la versione .NET sugli stessi 60
-abbinamenti usati sopra.
+The script `scripts/compare_results.py` reproduces the test pairs using both the
+Python pipeline and the C# library. It loads the ONNX model with
+`onnxruntime`, normalises the embeddings and computes the cosine distance for each pair.
+The script then calls the `FeatureDist` utility to obtain the distance reported by .NET. Results are
+written to `comparison.csv` with one row per comparison:
 
-### Genuine vs forged
+```
+File1,File2,IsForgeryPython,DistPython,IsForgeryDotnet,DistDotnet,Mismatch,DistDiff
+```
 
-| Nome file 1 | Nome file 2 | Valore reale | Is forged python | Valore similarità python | Is forged dotnet | Valore similarità dotnet | Python corretto | Dotnet corretto | Risultato finale | Differenza similarità |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 002_09.PNG | 0108002_03.png | True | True | 3.20 | True | 3.20 | True | True | False | 0.00 |
-| 001_10.PNG | 0201001_04.png | True | True | 1.77 | True | 1.77 | True | True | False | 0.00 |
-| 004_11.PNG | 0105004_01.png | True | True | 3.32 | True | 3.32 | True | True | False | 0.00 |
-| 004_15.PNG | 0105004_02.png | True | True | 3.48 | True | 3.48 | True | True | False | 0.00 |
-| 004_21.PNG | 0124004_01.png | True | True | 3.11 | True | 3.11 | True | True | False | 0.00 |
-| 001_11.PNG | 0201001_03.png | True | True | 2.81 | True | 2.81 | True | True | False | 0.00 |
-| 003_06.PNG | 0126003_04.png | True | True | 11.05 | True | 11.05 | True | True | False | 0.00 |
-| 003_02.PNG | 0121003_02.png | True | True | 11.64 | True | 11.64 | True | True | False | 0.00 |
-| 002_16.PNG | 0110002_01.png | True | True | 2.41 | True | 2.41 | True | True | False | 0.00 |
-| 002_23.PNG | 0118002_04.png | True | True | 4.45 | True | 4.45 | True | True | False | 0.00 |
-| 003_20.PNG | 0121003_04.png | True | True | 12.00 | True | 12.00 | True | True | False | 0.00 |
-| 002_11.PNG | 0108002_01.png | True | True | 2.93 | True | 2.93 | True | True | False | 0.00 |
-| 001_08.PNG | 0119001_01.png | True | True | 1.37 | True | 1.37 | True | True | False | 0.00 |
-| 001_11.PNG | 0119001_02.png | True | True | 2.97 | True | 2.97 | True | True | False | 0.00 |
-| 003_08.PNG | 0206003_04.png | True | True | 3.01 | True | 3.01 | True | True | False | 0.00 |
-| 001_22.PNG | 0119001_02.png | True | True | 2.74 | True | 2.74 | True | True | False | 0.00 |
-| 004_19.PNG | 0124004_01.png | True | True | 4.04 | True | 4.04 | True | True | False | 0.00 |
-| 001_11.PNG | 0201001_04.png | True | True | 1.83 | True | 1.83 | True | True | False | 0.00 |
-| 004_05.PNG | 0103004_03.png | True | True | 4.46 | True | 4.46 | True | True | False | 0.00 |
-| 004_17.PNG | 0103004_02.png | True | True | 3.49 | True | 3.49 | True | True | False | 0.00 |
-| 003_02.PNG | 0121003_03.png | True | True | 11.22 | True | 11.22 | True | True | False | 0.00 |
-| 003_23.PNG | 0121003_01.png | True | True | 11.61 | True | 11.61 | True | True | False | 0.00 |
-| 004_14.PNG | 0124004_01.png | True | True | 3.10 | True | 3.10 | True | True | False | 0.00 |
-| 001_13.PNG | 0119001_01.png | True | True | 0.89 | True | 0.89 | True | True | False | 0.00 |
-| 001_10.PNG | 0201001_04.png | True | True | 1.77 | True | 1.77 | True | True | False | 0.00 |
-| 003_07.PNG | 0121003_02.png | True | True | 12.61 | True | 12.61 | True | True | False | 0.00 |
-| 001_12.PNG | 0119001_03.png | True | True | 1.89 | True | 1.89 | True | True | False | 0.00 |
-| 004_24.PNG | 0105004_02.png | True | True | 3.67 | True | 3.67 | True | True | False | 0.00 |
-| 001_10.PNG | 0201001_03.png | True | True | 2.65 | True | 2.65 | True | True | False | 0.00 |
-| 003_02.PNG | 0121003_02.png | True | True | 11.64 | True | 11.64 | True | True | False | 0.00 |
+Run the script with:
 
-### Genuine vs genuine
+```bash
+PYTHONPATH=. python scripts/compare_results.py
+```
 
-| Nome file 1 | Nome file 2 | Valore reale | Is forged python | Valore similarità python | Is forged dotnet | Valore similarità dotnet | Python corretto | Dotnet corretto | Risultato finale | Differenza similarità |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 002_01.PNG | 002_13.PNG | False | False | 1.89 | False | 1.89 | True | True | False | 0.00 |
-| 001_19.PNG | 001_09.PNG | False | False | 0.43 | False | 0.43 | True | True | False | 0.00 |
-| 002_04.PNG | 002_09.PNG | False | False | 1.06 | False | 1.06 | True | True | False | 0.00 |
-| 003_17.PNG | 003_13.PNG | False | True | 6.59 | True | 6.59 | False | False | False | 0.00 |
-| 003_03.PNG | 003_06.PNG | False | True | 8.15 | True | 8.15 | False | False | False | 0.00 |
-| 003_18.PNG | 003_17.PNG | False | False | 5.95 | False | 5.95 | True | True | False | 0.00 |
-| 002_12.PNG | 002_13.PNG | False | False | 2.02 | False | 2.02 | True | True | False | 0.00 |
-| 002_18.PNG | 002_11.PNG | False | False | 1.89 | False | 1.89 | True | True | False | 0.00 |
-| 002_02.PNG | 002_04.PNG | False | False | 1.05 | False | 1.05 | True | True | False | 0.00 |
-| 003_01.PNG | 003_05.PNG | False | False | 3.61 | False | 3.61 | True | True | False | 0.00 |
-| 002_13.PNG | 002_14.PNG | False | False | 1.78 | False | 1.78 | True | True | False | 0.00 |
-| 002_06.PNG | 002_15.PNG | False | True | 6.03 | True | 6.03 | False | False | False | 0.00 |
-| 004_15.PNG | 004_23.PNG | False | False | 2.55 | False | 2.55 | True | True | False | 0.00 |
-| 002_06.PNG | 002_23.PNG | False | False | 4.97 | False | 4.97 | True | True | False | 0.00 |
-| 001_15.PNG | 001_08.PNG | False | False | 1.16 | False | 1.16 | True | True | False | 0.00 |
-| 002_23.PNG | 002_16.PNG | False | False | 2.82 | False | 2.82 | True | True | False | 0.00 |
-| 001_21.PNG | 001_22.PNG | False | False | 0.54 | False | 0.54 | True | True | False | 0.00 |
-| 004_21.PNG | 004_09.PNG | False | False | 2.29 | False | 2.29 | True | True | False | 0.00 |
-| 002_18.PNG | 002_11.PNG | False | False | 1.89 | False | 1.89 | True | True | False | 0.00 |
-| 002_07.PNG | 002_15.PNG | False | False | 1.42 | False | 1.42 | True | True | False | 0.00 |
-| 003_16.PNG | 003_23.PNG | False | True | 9.60 | True | 9.60 | False | False | False | 0.00 |
-| 003_23.PNG | 003_17.PNG | False | False | 3.36 | False | 3.36 | True | True | False | 0.00 |
-| 002_04.PNG | 002_11.PNG | False | False | 1.42 | False | 1.42 | True | True | False | 0.00 |
-| 004_05.PNG | 004_18.PNG | False | False | 2.80 | False | 2.80 | True | True | False | 0.00 |
-| 003_05.PNG | 003_12.PNG | False | False | 5.68 | False | 5.68 | True | True | False | 0.00 |
-| 004_21.PNG | 004_02.PNG | False | False | 2.15 | False | 2.15 | True | True | False | 0.00 |
-| 003_15.PNG | 003_10.PNG | False | False | 5.23 | False | 5.23 | True | True | False | 0.00 |
-| 004_11.PNG | 004_16.PNG | False | False | 2.37 | False | 2.37 | True | True | False | 0.00 |
-| 003_14.PNG | 003_01.PNG | False | False | 4.85 | False | 4.85 | True | True | False | 0.00 |
-| 001_10.PNG | 001_16.PNG | False | False | 0.29 | False | 0.29 | True | True | False | 0.00 |
+Execution may require the `onnxruntime`, `scikit-image` and `opencv-python-headless`
+packages as well as the .NET SDK. The `so` directory must be available on the
+### Comparison results
+#### Genuine vs forged
 
+
+| Nome file 1 | Nome file 2 | Valore atteso | Is forged python | Valore similarita python | Risultato python | Is forged dotnet | Valore similarita dotnet | Risultato dotnet | Mismatch | Diff |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 002_09.PNG | 0108002_03.png | True | False | 0.2167 | False | False | 0.2268 | False | False | 0.0100 |
+| 001_10.PNG | 0201001_04.png | True | True | 0.3936 | True | True | 0.4049 | True | False | 0.0113 |
+| 004_11.PNG | 0105004_01.png | True | False | 0.2652 | False | False | 0.2158 | False | False | -0.0494 |
+| 004_15.PNG | 0105004_02.png | True | False | 0.3083 | False | False | 0.2373 | False | False | -0.0711 |
+| 004_21.PNG | 0124004_01.png | True | False | 0.2412 | False | False | 0.1945 | False | False | -0.0467 |
+| 001_11.PNG | 0201001_03.png | True | True | 0.5040 | True | True | 0.4935 | True | False | -0.0105 |
+| 003_06.PNG | 0126003_04.png | True | False | 0.2710 | False | False | 0.3312 | False | False | 0.0602 |
+| 003_02.PNG | 0121003_02.png | True | True | 0.7522 | True | True | 0.7262 | True | False | -0.0260 |
+| 002_16.PNG | 0110002_01.png | True | False | 0.2250 | False | False | 0.2395 | False | False | 0.0144 |
+| 002_23.PNG | 0118002_04.png | True | True | 0.5209 | True | True | 0.5057 | True | False | -0.0151 |
+| 003_20.PNG | 0121003_04.png | True | True | 0.5799 | True | True | 0.5179 | True | False | -0.0620 |
+| 002_11.PNG | 0108002_01.png | True | False | 0.1905 | False | False | 0.2086 | False | False | 0.0182 |
+| 001_08.PNG | 0119001_01.png | True | False | 0.2794 | False | False | 0.2606 | False | False | -0.0189 |
+| 001_11.PNG | 0119001_02.png | True | True | 0.4132 | True | True | 0.4344 | True | False | 0.0212 |
+| 003_08.PNG | 0206003_04.png | True | False | 0.2021 | False | False | 0.1646 | False | False | -0.0376 |
+| 001_22.PNG | 0119001_02.png | True | True | 0.4359 | True | True | 0.4118 | True | False | -0.0241 |
+| 004_19.PNG | 0124004_01.png | True | False | 0.2597 | False | False | 0.1860 | False | False | -0.0736 |
+| 001_11.PNG | 0201001_04.png | True | True | 0.4151 | True | True | 0.4136 | True | False | -0.0015 |
+| 004_05.PNG | 0103004_03.png | True | True | 0.4219 | True | True | 0.4058 | True | False | -0.0162 |
+| 004_17.PNG | 0103004_02.png | True | False | 0.1614 | False | False | 0.1454 | False | False | -0.0160 |
+| 003_02.PNG | 0121003_03.png | True | True | 0.7400 | True | True | 0.7320 | True | False | -0.0080 |
+| 003_23.PNG | 0121003_01.png | True | True | 0.5576 | True | True | 0.4883 | True | False | -0.0692 |
+| 004_14.PNG | 0124004_01.png | True | True | 0.3852 | True | False | 0.3049 | False | True | -0.0803 |
+| 001_13.PNG | 0119001_01.png | True | False | 0.2402 | False | False | 0.2076 | False | False | -0.0326 |
+| 001_10.PNG | 0201001_04.png | True | True | 0.3936 | True | True | 0.4049 | True | False | 0.0113 |
+| 003_07.PNG | 0121003_02.png | True | True | 0.7565 | True | True | 0.6857 | True | False | -0.0708 |
+| 001_12.PNG | 0119001_03.png | True | True | 0.3962 | True | True | 0.3734 | True | False | -0.0228 |
+| 004_24.PNG | 0105004_02.png | True | False | 0.2713 | False | False | 0.1784 | False | False | -0.0929 |
+| 001_10.PNG | 0201001_03.png | True | True | 0.5016 | True | True | 0.4892 | True | False | -0.0124 |
+| 003_02.PNG | 0121003_02.png | True | True | 0.7522 | True | True | 0.7262 | True | False | -0.0260 |
+#### Genuine vs genuine
+
+| Nome file 1 | Nome file 2 | Valore atteso | Is forged python | Valore similarita python | Risultato python | Is forged dotnet | Valore similarita dotnet | Risultato dotnet | Mismatch | Diff |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 002_01.PNG | 002_13.PNG | False | False | 0.1972 | True | False | 0.1732 | True | False | -0.0240 |
+| 001_19.PNG | 001_09.PNG | False | False | 0.3363 | True | False | 0.3118 | True | False | -0.0245 |
+| 002_04.PNG | 002_09.PNG | False | False | 0.0589 | True | False | 0.0561 | True | False | -0.0028 |
+| 003_17.PNG | 003_13.PNG | False | False | 0.1790 | True | False | 0.2009 | True | False | 0.0219 |
+| 003_03.PNG | 003_06.PNG | False | False | 0.0845 | True | False | 0.0872 | True | False | 0.0027 |
+| 003_18.PNG | 003_17.PNG | False | False | 0.2158 | True | False | 0.2261 | True | False | 0.0104 |
+| 002_12.PNG | 002_13.PNG | False | False | 0.1219 | True | False | 0.1183 | True | False | -0.0036 |
+| 002_18.PNG | 002_11.PNG | False | False | 0.0656 | True | False | 0.0650 | True | False | -0.0006 |
+| 002_02.PNG | 002_04.PNG | False | False | 0.0356 | True | False | 0.0299 | True | False | -0.0057 |
+| 003_01.PNG | 003_05.PNG | False | False | 0.1197 | True | False | 0.1492 | True | False | 0.0295 |
+| 002_13.PNG | 002_14.PNG | False | False | 0.0430 | True | False | 0.0317 | True | False | -0.0113 |
+| 002_06.PNG | 002_15.PNG | False | False | 0.1023 | True | False | 0.1092 | True | False | 0.0069 |
+| 004_15.PNG | 004_23.PNG | False | False | 0.1465 | True | False | 0.1025 | True | False | -0.0440 |
+| 002_06.PNG | 002_23.PNG | False | False | 0.1345 | True | False | 0.1379 | True | False | 0.0034 |
+| 001_15.PNG | 001_08.PNG | False | False | 0.2323 | True | False | 0.2625 | True | False | 0.0303 |
+| 002_23.PNG | 002_16.PNG | False | False | 0.0637 | True | False | 0.0559 | True | False | -0.0078 |
+| 001_21.PNG | 001_22.PNG | False | False | 0.1498 | True | False | 0.1217 | True | False | -0.0281 |
+| 004_21.PNG | 004_09.PNG | False | False | 0.2239 | True | False | 0.2045 | True | False | -0.0194 |
+| 002_18.PNG | 002_11.PNG | False | False | 0.0656 | True | False | 0.0650 | True | False | -0.0006 |
+| 002_07.PNG | 002_15.PNG | False | False | 0.1064 | True | False | 0.1300 | True | False | 0.0235 |
+| 003_16.PNG | 003_23.PNG | False | False | 0.1700 | True | False | 0.1805 | True | False | 0.0105 |
+| 003_23.PNG | 003_17.PNG | False | False | 0.1794 | True | False | 0.1524 | True | False | -0.0270 |
+| 002_04.PNG | 002_11.PNG | False | False | 0.0936 | True | False | 0.0786 | True | False | -0.0150 |
+| 004_05.PNG | 004_18.PNG | False | False | 0.2060 | True | False | 0.2126 | True | False | 0.0065 |
+| 003_05.PNG | 003_12.PNG | False | False | 0.1003 | True | False | 0.1641 | True | False | 0.0638 |
+| 004_21.PNG | 004_02.PNG | False | False | 0.0631 | True | False | 0.0502 | True | False | -0.0129 |
+| 003_15.PNG | 003_10.PNG | False | True | 0.3652 | False | False | 0.3439 | True | True | -0.0212 |
+| 004_11.PNG | 004_16.PNG | False | False | 0.1399 | True | False | 0.1004 | True | False | -0.0395 |
+| 003_14.PNG | 003_01.PNG | False | True | 0.4215 | False | True | 0.4875 | False | False | 0.0661 |
+| 001_10.PNG | 001_16.PNG | False | False | 0.1584 | True | False | 0.1730 | True | False | 0.0146 |
 ## Meta‑learning
 
 Use the `sigver.metalearning.train` script to train a meta‑learner:
@@ -350,6 +409,13 @@ python -m sigver.metalearning.train --dataset-path <path/to/dataset.npz> \
     --epochs <epochs> --num-sk-test <skilled_in_Dtest> --model <model>
 ```
 `num-updates` specifies `K` in the paper, while `num-rf` controls how many random forgeries are used during adaptation.
+
+## Converting models to ONNX
+Run `python convert_to_onnx.py` to export the provided PyTorch weights to
+`models/*.onnx` files. The script requires the `onnx` package.
+
+There are currently no automated tests. After modifying the repository, ensure
+that the export script still runs without errors.
 
 ## Citation
 
