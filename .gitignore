@@ -395,6 +395,5 @@ FodyWeavers.xsd
 # JetBrains Rider
 .idea/
 *.sln.iml
-Links.SpotBooking.Api/public
 
-# ONNX models
+ProcessDump/obj
