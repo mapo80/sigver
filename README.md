@@ -1,77 +1,87 @@
-# Learning representations for Offline Handwritten Signature Verification
+# SigVer: Offline Signature Verification
 
-This repository contains code to train CNNs for feature extraction for Offline Handwritten Signatures, code to 
-train writer-dependent classifiers [1] and code to train meta-learners [3]. It also contains code to train two countermeasures for Adversarial Examples,
-as described in [2] (the code to run the experiments from this second paper can be found in this [repository](https://github.com/luizgh/adversarial_signatures)).
+SigVer provides neural models and training scripts for verifying handwritten signatures on paper. The original project was created to learn writer–independent representations and classifiers in PyTorch. This repository also demonstrates how to export the trained weights to ONNX so the models can be used in other runtimes such as .NET.
 
-[1] Hafemann, Luiz G., Robert Sabourin, and Luiz S. Oliveira. "Learning Features for Offline Handwritten Signature Verification using Deep Convolutional Neural Networks" http://dx.doi.org/10.1016/j.patcog.2017.05.012 ([preprint](https://arxiv.org/abs/1705.05787))
+## Quick installation
 
-[2] Hafemann, Luiz G., Robert Sabourin, and Luiz S. Oliveira. "Characterizing and evaluating adversarial examples for Offline Handwritten Signature Verification" https://doi.org/10.1109/TIFS.2019.2894031 ([preprint](https://arxiv.org/abs/1901.03398))
+1. Install Python requirements:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Export the pretrained weights to ONNX:
+   ```bash
+   python convert_to_onnx.py
+   ```
+   The script produces `models/signet.onnx` and `models/signet_f_lambda_0.95.onnx`.
 
-[3] Hafemann, Luiz G., Robert Sabourin, and Luiz S. Oliveira. "Meta-learning for fast classifier adaptation to new users of Signature Verification systems" https://doi.org/10.1109/TIFS.2019.2949425 ([preprint](https://arxiv.org/abs/1910.08060))
+## Using PyTorch models
 
-This code for feature extraction and writer-dependent classifiers is a re-implementation in Pytorch (original code for [1] was written in theano+lasagne: [link](https://github.com/luizgh/sigver_wiwd)). 
+To extract features from a signature using PyTorch:
 
-# Installation
+```python
+import torch
+from sigver.featurelearning.models import SigNet
 
-This package requires Python 3.10+. Installation can be done with pip:
-
-```bash
-pip install git+https://github.com/luizgh/sigver.git --process-dependency-links
+state_dict, _, _ = torch.load('models/signet.pth')
+model = SigNet().eval()
+model.load_state_dict(state_dict)
+with torch.no_grad():
+    feats = model(image_tensor)
 ```
 
-You can also clone this repository and install it with `pip install -e <path/to/repository> --process-dependency-links`.
-You can install the dependencies with `pip install -r requirements.txt`.
+## ONNX models
 
-# Usage
+The exported ONNX networks are equivalent to the PyTorch weights `signet.pth` and `signet_f_lambda_0.95.pth`. They output a 2048‑dimensional feature vector and can be used with any ONNX runtime.
+
+## .NET SDK
+
+The `SigVerSdk` folder contains a small .NET library that relies on `onnxruntime`. It loads an ONNX model and computes signature features. Example usage in C#:
+
+```csharp
+using var verifier = new SigVerSdk.SigVerifier("models/signet.onnx");
+float[] features = verifier.ExtractFeatures("data/a1.png");
+```
+
+The unit tests in `SigVerSdk.Tests` illustrate a simple verification scenario comparing two signatures.
 
 ## Data preprocessing
 
-The functions in this package expect training data to be provided in a single .npz file, with the following components:
+Training scripts expect data in a single `.npz` file containing:
 
-* ```x```: Signature images (numpy array of size N x 1 x H x W)
-* ```y```: The user that produced the signature (numpy array of size N )
-* ```yforg```: Whether the signature is a forgery (1) or genuine (0) (numpy array of size N )
+* `x`: signature images (N × 1 × H × W)
+* `y`: the user that produced each signature (N)
+* `yforg`: whether the image is a forgery (1) or genuine (0)
 
-We provide functions to process some commonly used datasets in the script ```sigver.datasets.process_dataset```. 
-As an example, the following code pre-process the MCYT dataset with the procedure from [1] (remove background, center in canvas and resize to 170x242)
+Common datasets can be processed with `sigver.datasets.process_dataset`. For example, the MCYT dataset can be prepared as follows:
 
 ```bash
 python -m sigver.preprocessing.process_dataset --dataset mcyt \
- --path MCYT-ORIGINAL/MCYToffline75original --save-path mcyt_170_242.npz
+  --path MCYT-ORIGINAL/MCYToffline75original --save-path mcyt_170_242.npz
+```
+During training a random 150×220 crop is used; at test time the center crop is applied.
+
+## Training writer‑independent networks
+
+Two loss functions are implemented as described in the original paper:
+
+* **SigNet** – uses only genuine signatures.
+* **SigNet‑F** – incorporates knowledge of forgeries (`--forg`).
+
+Example commands:
+
+```bash
+python -m sigver.featurelearning.train --model signet --dataset-path <data.npz> \
+  --users 300 881 --epochs 60 --logdir signet
+
+python -m sigver.featurelearning.train --model signet --dataset-path <data.npz> \
+  --users 300 881 --epochs 60 --forg --lamb 0.95 --logdir signet_f_lamb0.95
 ```
 
-During training a random crop of size 150x220 is taken for each iteration. During test we use the center 150x220 crop.
+All command line options are listed with `python -m sigver.featurelearning.train --help`. Real‑time monitoring is available with the `--visdom-port` option.
 
-## Training a CNN for Writer-Independent feature learning
+## Training writer‑dependent classifiers
 
-This repository implements the two loss functions defined in [1]: SigNet (learning from genuine signatures only)
-and SigNet-F (incorporating knowledge of forgeries). In the training script, the flag
-```--users``` is use to define the users that are used for feature learning. In [1],
-GPDS users 300-881 were used (```--users 300 881```). 
-
-
-Training SigNet:
-
-```
-python -m sigver.featurelearning.train --model signet --dataset-path  <data.npz> --users [first last]\ 
---model signet --epochs 60 --logdir signet  
-```
-
-Training SigNet-F with lambda=0.95:
-
-```
-python -m sigver.featurelearning.train --model signet --dataset-path  <data.npz> --users [first last]\ 
---model signet --epochs 60 --forg --lamb 0.95 --logdir signet_f_lamb0.95  
-```
-
-For checking all command-line options, use ```python -m sigver.featurelearning.train --help```. 
-In particular, the option ```--visdom-port``` allows real-time monitoring using [visdom](https://github.com/facebookresearch/visdom) (start the visdom
-server with ```python -m visdom.server -port <port>```).   
-
-## Training WD classifiers and evaluating the result
-
-For training and testing the WD classifiers, use the ```sigver.wd.test``` script. Example:
+To train and evaluate WD classifiers:
 
 ```bash
 python -m sigver.wd.test -m signet --model-path <path/to/trained_model> \
@@ -79,101 +89,93 @@ python -m sigver.wd.test -m signet --model-path <path/to/trained_model> \
     --exp-users 0 300 --dev-users 300 881 --gen-for-train 12
 ```
 
-Where trained_model is a .pth file (trained with the script above, or pre-trained - see the section below).
-This script will split the dataset into train/test, train WD classifiers and evaluate then on the test set. This
-is performed for K random splits (default 10). The script saves a pickle file containing a list, where each element is the result 
-of one random split. Each item contains a dictionary with:
+The script performs K random splits (default 10) and stores a pickle file with results containing metrics such as FAR and FRR as well as the predictions for each image.
 
-* 'all_metrics': a dictionary containing:
-  * 'FRR': false rejection rate
-  * 'FAR_random': false acceptance rate for random forgeries
-  * 'FAR_skilled': false acceptance rate for skilled forgeries
-  * 'mean_AUC': mean Area Under the Curve (average of AUC for each user)
-  * 'EER': Equal Error Rate using a global threshold
-  * 'EER_userthresholds': Equal Error Rate using user-specific thresholds
-  * 'auc_list': the list of AUCs (one per user)
-  * 'global_threshold': the optimum global threshold (used in EER)
-* 'predictions': a dictionary containing the predictions for all images on the test set:
-  * 'genuinePreds': Predictions to genuine signatures
-  * 'randomPreds': Predictions to random forgeries
-  * 'skilledPreds': Predictions to skilled forgeries
+## Pre‑trained models
 
+Pre‑trained weights are available for convenience:
+* [SigNet](https://drive.google.com/open?id=1l8NFdxSvQSLb2QTv71E6bKcTgvShKPpx)
+* [SigNet‑F lambda 0.95](https://drive.google.com/open?id=1ifaUiPtP1muMjt8Tkrv7yJj7we8ttncW)
 
-The example above train WD classifiers for the exploitation set (users 0-300) using a development
-set (users 300-881), with 12 genuine signatures per user (this is the setup from [1] - refer to 
-the paper for more details). For knowing all command-line options, run ```python -m sigver.wd.test -m signet```. 
+These weights were trained with pixel values in the range [0, 1]. Divide each pixel by 255 before inference, e.g. `x = x.float().div(255)`. `torchvision.transforms.ToTensor` already performs this division.
 
-# Pre-trained models
+## Example dataset
 
-Pre-trained models can be found here: 
-* SigNet ([link](https://drive.google.com/open?id=1l8NFdxSvQSLb2QTv71E6bKcTgvShKPpx))
-* SigNet-F lambda 0.95 ([link](https://drive.google.com/open?id=1ifaUiPtP1muMjt8Tkrv7yJj7we8ttncW))
+The repository contains a small dataset in the `data` directory. Each folder such
+as `001` holds genuine signatures from a single user. The matching folder
+`001_forg` stores forged signatures produced by other writers. Every user has 24
+genuine samples and roughly 8–12 forgeries. Below is a preview showing ten pairs
+from the `001` and `002` folders—genuine signatures on the left and forgeries on
+the right.
 
+<table>
+  <tr>
+    <td><img src="data/001/001_01.PNG" width="150"></td>
+    <td><img src="data/001_forg/0119001_01.png" width="150"></td>
+  </tr>
+  <tr>
+    <td><img src="data/001/001_02.PNG" width="150"></td>
+    <td><img src="data/001_forg/0119001_02.png" width="150"></td>
+  </tr>
+  <tr>
+    <td><img src="data/001/001_03.PNG" width="150"></td>
+    <td><img src="data/001_forg/0119001_03.png" width="150"></td>
+  </tr>
+  <tr>
+    <td><img src="data/001/001_04.PNG" width="150"></td>
+    <td><img src="data/001_forg/0119001_04.png" width="150"></td>
+  </tr>
+  <tr>
+    <td><img src="data/002/002_01.PNG" width="150"></td>
+    <td><img src="data/002_forg/0108002_01.png" width="150"></td>
+  </tr>
+  <tr>
+    <td><img src="data/002/002_02.PNG" width="150"></td>
+    <td><img src="data/002_forg/0108002_02.png" width="150"></td>
+  </tr>
+  <tr>
+    <td><img src="data/002/002_03.PNG" width="150"></td>
+    <td><img src="data/002_forg/0108002_03.png" width="150"></td>
+  </tr>
+  <tr>
+    <td><img src="data/002/002_04.PNG" width="150"></td>
+    <td><img src="data/002_forg/0108002_04.png" width="150"></td>
+  </tr>
+  <tr>
+    <td><img src="data/002/002_05.PNG" width="150"></td>
+    <td><img src="data/002_forg/0110002_01.png" width="150"></td>
+  </tr>
+  <tr>
+    <td><img src="data/002/002_06.PNG" width="150"></td>
+    <td><img src="data/002_forg/0110002_02.png" width="150"></td>
+  </tr>
+</table>
 
-These models contains the weights for the feature extraction layers.
+## Meta‑learning
 
-**Important**: These models were trained with pixels ranging from [0, 1]. Besides the pre-processing steps described above, you need to divide each  pixel by 255 to be in the range. This can be done as follows: ```x = x.float().div(255)```. Note that Pytorch does this conversion automatically if you use ```torchvision.transforms.totensor```, which is used during training.
+Use the `sigver.metalearning.train` script to train a meta‑learner:
 
-Usage:
-
-```python
-
-import torch
-from sigver.featurelearning.models import SigNet
-
-# Load the model
-state_dict, classification_layer, forg_layer = torch.load('models/signet.pth')
-base_model = SigNet().eval()
-base_model.load_state_dict(state_dict)
-
-# Extract features
-with torch.no_grad(): # We don't need gradients. Inform torch so it doesn't compute them
-    features = base_model(input)
-
-```
-
-See ```example.py``` for a complete example. For a jupyter notebook, see this [interactive example](https://nbviewer.jupyter.org/github/luizgh/sigver/blob/master/interactive_example.ipynb).
-## Converting weights to ONNX
-Run `python convert_to_onnx.py` to export the PyTorch models in `models/` to ONNX format. This requires the `onnx` package. The resulting files will be saved next to the original `.pth` weights.
-
-## SigVerSdk (.NET)
-This repository also provides a small .NET SDK in `SigVerSdk` to load the exported ONNX models with `onnxruntime`.
-The SDK exposes a `SigVerifier` class that extracts 2048-dimensional feature vectors from signature images.
-
-```csharp
-using var verifier = new SigVerSdk.SigVerifier("models/signet.onnx");
-float[] features = verifier.ExtractFeatures("data/a1.png");
-```
-
-Unit tests located in `SigVerSdk.Tests` run inference and simple forgery detection
-on the sample images in `data/`.
-On this environment the average time to extract features is about **118 ms**
-per image, while verifying a pair of signatures takes around **132 ms**.
-# Meta-learning 
-
-To train a meta-learning model, use the `sigver.metalearning.train` script:
 ```bash
-python -m sigver.metalearning.train --dataset-path <path/to/datataset.npz> \
-    --pretrain-epochs <number_pretrain_epochs> --num-updates <number_gradient_steps> --num-rf <num_random_forgeries> \
-    --epochs <number_epochs> --num-sk-test <number_skilled_in_Dtest> --model <model>
+python -m sigver.metalearning.train --dataset-path <path/to/dataset.npz> \
+    --pretrain-epochs <pretrain> --num-updates <gradient_steps> --num-rf <rand_forg> \
+    --epochs <epochs> --num-sk-test <skilled_in_Dtest> --model <model>
 ```
+`num-updates` specifies `K` in the paper, while `num-rf` controls how many random forgeries are used during adaptation.
 
-Where `num-updates` is the number of gradient descent steps in the classifier adaptation (`K` in the paper), and `num-rf` refers to 
-the number of random forgeries in the classifier adaptation steps (set `--num-rf 0` for the one-class formulation). Refer to the
-sigver/metalearning/train.py script for a complete list of arguments.
+## Citation
 
-# Citation
+If you use this code, please cite:
 
-If you use our code, please consider citing the following papers:
+1. Hafemann et al., *Learning Features for Offline Handwritten Signature Verification using Deep Convolutional Neural Networks* (2017).
+2. Hafemann et al., *Characterizing and evaluating adversarial examples for Offline Handwritten Signature Verification* (2019).
+3. Hafemann et al., *Meta-learning for fast classifier adaptation to new users of Signature Verification systems* (2019).
 
-[1] Hafemann, Luiz G., Robert Sabourin, and Luiz S. Oliveira. "Learning Features for Offline Handwritten Signature Verification using Deep Convolutional Neural Networks" http://dx.doi.org/10.1016/j.patcog.2017.05.012 ([preprint](https://arxiv.org/abs/1705.05787))
+## License
 
-[2] Hafemann, Luiz G., Robert Sabourin, and Luiz S. Oliveira. "Characterizing and evaluating adversarial examples for Offline Handwritten Signature Verification" https://doi.org/10.1109/TIFS.2019.2894031 ([preprint](https://arxiv.org/abs/1901.03398))
+The source code is released under the BSD 3‑Clause license. Models were trained on the GPDS dataset, which is restricted for non‑commercial use.
 
-[3] Hafemann, Luiz G., Robert Sabourin, and Luiz S. Oliveira. "Meta-learning for fast classifier adaptation to new users of Signature Verification systems" https://doi.org/10.1109/TIFS.2019.2949425 ([preprint](https://arxiv.org/abs/1910.08060))
+---
 
-# License
+### Original project
 
-The source code is released under the BSD 3-clause license. Note that the trained models used the GPDS dataset for training, which is restricted for non-commercial use.  
-
-Please do not contact me requesting access to any particular dataset. These requests should be addressed directly to the groups that collected them.
+This repository is based on the original [sigver](https://github.com/luizgh/sigver) project by Luiz G. Hafemann. The original README contains detailed explanations of the training procedure and dataset preparation which are reproduced here for convenience.
