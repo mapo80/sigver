@@ -164,46 +164,88 @@ the right.
 
 ## Test results
 
-The table below shows the outcome of running the signature verifier on 30
-randomly selected genuine/forged pairs from the `data` directory. Each
-comparison measures the time required to detect the forgery.
+The tables below show the outcome of running the signature verifier on 60
+randomly selected pairs from the `data` directory. Half of the pairs compare a
+genuine signature with a forged one, while the other half compare two genuine
+signatures of the same user. Each comparison reports whether the verifier
+behaved as expected and how long it took.
+
+### Genuine vs forged
 
 | Genuine | Forged | Detected | Time (ms) |
 |---------|--------|----------|-----------|
-| 004_02.PNG | 0105004_04.png | True | 126 |
-| 001_02.PNG | 0201001_04.png | True | 35 |
-| 003_20.PNG | 0206003_02.png | True | 50 |
-| 001_07.PNG | 0119001_03.png | True | 35 |
-| 003_14.PNG | 0126003_03.png | True | 23 |
-| 002_19.PNG | 0110002_03.png | True | 24 |
-| 004_04.PNG | 0103004_04.png | True | 22 |
-| 004_10.PNG | 0124004_04.png | True | 26 |
-| 002_23.PNG | 0110002_03.png | True | 24 |
-| 001_18.PNG | 0201001_01.png | True | 25 |
-| 004_12.PNG | 0105004_02.png | True | 41 |
-| 003_23.PNG | 0206003_03.png | True | 37 |
-| 004_20.PNG | 0103004_04.png | True | 21 |
-| 002_07.PNG | 0110002_04.png | True | 44 |
-| 003_21.PNG | 0126003_01.png | True | 23 |
-| 001_19.PNG | 0201001_04.png | True | 26 |
-| 004_05.PNG | 0105004_04.png | True | 38 |
-| 003_03.PNG | 0121003_03.png | True | 37 |
-| 004_12.PNG | 0105004_03.png | True | 26 |
-| 004_12.PNG | 0124004_03.png | True | 22 |
-| 002_11.PNG | 0110002_04.png | True | 27 |
-| 004_05.PNG | 0105004_03.png | True | 22 |
-| 003_15.PNG | 0121003_04.png | True | 24 |
-| 002_17.PNG | 0118002_04.png | True | 26 |
-| 004_05.PNG | 0105004_02.png | True | 27 |
-| 002_22.PNG | 0110002_04.png | True | 26 |
-| 002_02.PNG | 0108002_03.png | True | 58 |
-| 003_23.PNG | 0126003_01.png | True | 20 |
-| 002_10.PNG | 0108002_02.png | True | 52 |
+| 002_09.PNG | 0108002_03.png | True | 18 |
+| 001_10.PNG | 0201001_04.png | True | 22 |
+| 004_11.PNG | 0105004_01.png | True | 14 |
+| 004_15.PNG | 0105004_02.png | True | 14 |
+| 004_21.PNG | 0124004_01.png | True | 14 |
+| 001_11.PNG | 0201001_03.png | True | 28 |
+| 003_06.PNG | 0126003_04.png | True | 23 |
+| 003_02.PNG | 0121003_02.png | True | 32 |
+| 002_16.PNG | 0110002_01.png | True | 16 |
+| 002_23.PNG | 0118002_04.png | True | 17 |
+| 003_20.PNG | 0121003_04.png | True | 20 |
+| 002_11.PNG | 0108002_01.png | True | 26 |
+| 001_08.PNG | 0119001_01.png | True | 17 |
+| 001_11.PNG | 0119001_02.png | True | 20 |
+| 003_08.PNG | 0206003_04.png | True | 16 |
+| 001_22.PNG | 0119001_02.png | True | 18 |
+| 004_19.PNG | 0124004_01.png | True | 15 |
+| 001_11.PNG | 0201001_04.png | True | 23 |
+| 004_05.PNG | 0103004_03.png | True | 16 |
+| 004_17.PNG | 0103004_02.png | True | 16 |
+| 003_02.PNG | 0121003_03.png | True | 16 |
+| 003_23.PNG | 0121003_01.png | True | 16 |
+| 004_14.PNG | 0124004_01.png | True | 19 |
+| 001_13.PNG | 0119001_01.png | True | 22 |
+| 001_10.PNG | 0201001_04.png | True | 20 |
+| 003_07.PNG | 0121003_02.png | True | 17 |
+| 001_12.PNG | 0119001_03.png | True | 20 |
+| 004_24.PNG | 0105004_02.png | True | 15 |
+| 001_10.PNG | 0201001_03.png | True | 18 |
+| 003_02.PNG | 0121003_02.png | True | 16 |
+
+### Genuine vs genuine
+
+| Reference | Candidate | Match | Time (ms) |
+|-----------|-----------|-------|-----------|
+| 002_01.PNG | 002_13.PNG | True | 95 |
+| 001_19.PNG | 001_09.PNG | True | 33 |
+| 002_04.PNG | 002_09.PNG | True | 17 |
+| 003_17.PNG | 003_13.PNG | True | 21 |
+| 003_03.PNG | 003_06.PNG | True | 39 |
+| 003_18.PNG | 003_17.PNG | True | 21 |
+| 002_12.PNG | 002_13.PNG | True | 22 |
+| 002_18.PNG | 002_11.PNG | True | 20 |
+| 002_02.PNG | 002_04.PNG | True | 15 |
+| 003_01.PNG | 003_05.PNG | True | 16 |
+| 002_13.PNG | 002_14.PNG | True | 19 |
+| 002_06.PNG | 002_15.PNG | True | 18 |
+| 004_15.PNG | 004_23.PNG | True | 36 |
+| 002_06.PNG | 002_23.PNG | True | 17 |
+| 001_15.PNG | 001_08.PNG | True | 20 |
+| 002_23.PNG | 002_16.PNG | True | 18 |
+| 001_21.PNG | 001_22.PNG | True | 26 |
+| 004_21.PNG | 004_09.PNG | True | 14 |
+| 002_18.PNG | 002_11.PNG | True | 15 |
+| 002_07.PNG | 002_15.PNG | True | 18 |
+| 003_16.PNG | 003_23.PNG | True | 16 |
+| 003_23.PNG | 003_17.PNG | True | 19 |
+| 002_04.PNG | 002_11.PNG | True | 15 |
+| 004_05.PNG | 004_18.PNG | True | 15 |
+| 003_05.PNG | 003_12.PNG | True | 15 |
+| 004_21.PNG | 004_02.PNG | True | 15 |
+| 003_15.PNG | 003_10.PNG | True | 15 |
+| 004_11.PNG | 004_16.PNG | True | 18 |
+| 003_14.PNG | 003_01.PNG | True | 24 |
+| 001_10.PNG | 001_16.PNG | True | 23 |
 
 ### Detailed test report
 
-All 30 forged comparisons were correctly detected using a threshold of 0.8.
-The average verification time was approximately 34 ms per pair.
+All 30 forged comparisons were correctly detected using a threshold of 0.8. All
+30 genuine comparisons were accepted with a threshold of 6.0. The average
+verification time was about 18.8 ms for forged pairs and 22.5 ms for genuine
+pairs.
 
 ## Meta‑learning
 
