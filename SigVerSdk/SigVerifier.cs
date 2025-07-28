@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 
 namespace SigVerSdk;
 
@@ -20,15 +18,17 @@ public class SigVerifier : IDisposable
 
     public float[] ExtractFeatures(string imagePath)
     {
-        using var image = Image.Load<L8>(imagePath);
+        using var bitmap = SKBitmap.Decode(imagePath) ?? throw new ArgumentException($"Unable to load image '{imagePath}'");
+        using var resized = bitmap.Resize(new SKImageInfo(220, 150), SKFilterQuality.Medium)
+            ?? throw new InvalidOperationException("Failed to resize image");
         var input = new DenseTensor<float>(new[] { 1, 1, 150, 220 });
-        // center crop to 150x220 if larger
-        var resized = image.Clone(ctx => ctx.Resize(220, 150));
         for (int y = 0; y < 150; y++)
         {
             for (int x = 0; x < 220; x++)
             {
-                input[0, 0, y, x] = resized[x, y].PackedValue / 255f;
+                var color = resized.GetPixel(x, y);
+                float luminance = 0.299f * color.Red + 0.587f * color.Green + 0.114f * color.Blue;
+                input[0, 0, y, x] = luminance / 255f;
             }
         }
         var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor("input", input) };
