@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "dgSpecHash": "HCZoLCxb81ebdvVGFPBL2I7b9ls9gg7NBUig0dOEHRUPXASuBTA4vP+Acat5SGmRiw9G4JZ8X57PAOvp3vyuxw==",
+  "success": true,
+  "projectFilePath": "/Users/politom/Documents/Workspace/Links/sigver/PreprocessDump/PreprocessDump.csproj",
+  "expectedPackageFiles": [
+    "/Users/politom/.nuget/packages/microsoft.ml.onnxruntime/1.17.3/microsoft.ml.onnxruntime.1.17.3.nupkg.sha512",
+    "/Users/politom/.nuget/packages/microsoft.ml.onnxruntime.managed/1.17.3/microsoft.ml.onnxruntime.managed.1.17.3.nupkg.sha512",
+    "/Users/politom/.nuget/packages/skiasharp/3.119.0/skiasharp.3.119.0.nupkg.sha512",
+    "/Users/politom/.nuget/packages/skiasharp.nativeassets.linux/3.119.0/skiasharp.nativeassets.linux.3.119.0.nupkg.sha512",
+    "/Users/politom/.nuget/packages/skiasharp.nativeassets.macos/3.119.0/skiasharp.nativeassets.macos.3.119.0.nupkg.sha512",
+    "/Users/politom/.nuget/packages/skiasharp.nativeassets.win32/3.119.0/skiasharp.nativeassets.win32.3.119.0.nupkg.sha512",
+    "/Users/politom/.nuget/packages/system.memory/4.5.5/system.memory.4.5.5.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Error occurred while getting package vulnerability data: Access to the path '/Users/politom/.local/share/NuGet' is denied."
+    }
+  ]
+}

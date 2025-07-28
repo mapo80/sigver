@@ -47,6 +47,12 @@ using var verifier = new SigVerSdk.SigVerifier("models/signet.onnx");
 float[] features = verifier.ExtractFeatures("data/a1.png");
 ```
 
+`ExtractFeatures` now mirrors the Python preprocessing pipeline. Images are
+centered on a 1360×840 canvas, cleaned with Otsu thresholding, resized to
+170×242 and then cropped to 150×220 before the model is invoked. The method also
+validates the output, throwing an exception when the model returns NaN or
+infinite values.
+
 The unit tests in `SigVerSdk.Tests` illustrate a simple verification scenario comparing two signatures.
 
 If the required SDK is missing, run the provided install script before building:
@@ -161,6 +167,39 @@ the right.
     <td><img src="data/002_forg/0110002_02.png" width="150"></td>
   </tr>
 </table>
+
+### Preprocessing comparison
+
+The verifier preprocesses every input image before running the ONNX model. The
+Python library and the C# implementation now follow the same steps: centering
+the signature on an 840×1360 canvas, removing the background with Otsu
+thresholding, resizing to 170×242 and cropping a 150×220 window. The tables
+below show the resulting images for those involved in the failing test as well
+as ten examples from passing tests.
+
+#### Failing test images
+
+| Original | Python | .NET |
+|---------|--------|------|
+| `001_01.PNG` | ![](docs/preprocess/python/001_01_py.png) | ![](docs/preprocess/dotnet/001_01_dotnet.png) |
+| `001_02.PNG` | ![](docs/preprocess/python/001_02_py.png) | ![](docs/preprocess/dotnet/001_02_dotnet.png) |
+| `002_01.PNG` | ![](docs/preprocess/python/002_01_py.png) | ![](docs/preprocess/dotnet/002_01_dotnet.png) |
+| `002_02.PNG` | ![](docs/preprocess/python/002_02_py.png) | ![](docs/preprocess/dotnet/002_02_dotnet.png) |
+
+#### Passing examples
+
+| Original | Python | .NET |
+|---------|--------|------|
+| `004_04.PNG` | ![](docs/preprocess/python/004_04_py.png) | ![](docs/preprocess/dotnet/004_04_dotnet.png) |
+| `0105004_03.png` | ![](docs/preprocess/python/0105004_03_py.png) | ![](docs/preprocess/dotnet/0105004_03_dotnet.png) |
+| `003_01.PNG` | ![](docs/preprocess/python/003_01_py.png) | ![](docs/preprocess/dotnet/003_01_dotnet.png) |
+| `0126003_02.png` | ![](docs/preprocess/python/0126003_02_py.png) | ![](docs/preprocess/dotnet/0126003_02_dotnet.png) |
+| `004_23.PNG` | ![](docs/preprocess/python/004_23_py.png) | ![](docs/preprocess/dotnet/004_23_dotnet.png) |
+| `0103004_04.png` | ![](docs/preprocess/python/0103004_04_py.png) | ![](docs/preprocess/dotnet/0103004_04_dotnet.png) |
+| `001_06.PNG` | ![](docs/preprocess/python/001_06_py.png) | ![](docs/preprocess/dotnet/001_06_dotnet.png) |
+| `0119001_02.png` | ![](docs/preprocess/python/0119001_02_py.png) | ![](docs/preprocess/dotnet/0119001_02_dotnet.png) |
+| `002_19.PNG` | ![](docs/preprocess/python/002_19_py.png) | ![](docs/preprocess/dotnet/002_19_dotnet.png) |
+| `0118002_02.png` | ![](docs/preprocess/python/0118002_02_py.png) | ![](docs/preprocess/dotnet/0118002_02_dotnet.png) |
 
 ### Automated C# tests
 
