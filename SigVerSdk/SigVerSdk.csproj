@@ -8,6 +8,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.17.3" />
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <!-- Include native SkiaSharp binaries for Linux so tests can run -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
   </ItemGroup>
 
 </Project>

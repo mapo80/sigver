@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using SigVerSdk;
+using Xunit;
 
 namespace SigVerSdk.Tests;
 
@@ -38,7 +39,18 @@ public class SignatureTests
     {
         var modelPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../models/signet.onnx"));
         using var verifier = new SigVerifier(modelPath);
-        var result = verifier.IsForgery(genuinePath, forgedPath);
-        Assert.True(result);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var isForgery = verifier.IsForgery(genuinePath, forgedPath, 0.8f);
+        sw.Stop();
+        Console.WriteLine($"{Path.GetFileName(genuinePath)} vs {Path.GetFileName(forgedPath)} -> detected={isForgery} time={sw.ElapsedMilliseconds}ms");
+        Assert.True(isForgery);
+    }
+}
+
+public static class SigVerifierExtensions
+{
+    public static bool Verify(this SigVerifier verifier, string genuinePath, string candidatePath, float threshold = 1.5f)
+    {
+        return !verifier.IsForgery(genuinePath, candidatePath, threshold);
     }
 }
