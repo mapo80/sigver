@@ -25,7 +25,7 @@ def genuine_forged_pairs(seed=42, n=30):
         forged_dir = os.path.join(DATA_DIR, folder + '_forg')
         gen = rng.choice(os.listdir(gen_dir))
         forg = rng.choice(os.listdir(forged_dir))
-        yield os.path.join(gen_dir, gen), os.path.join(forged_dir, forg), 0.8
+        yield os.path.join(gen_dir, gen), os.path.join(forged_dir, forg), 0.8, True
 
 
 def genuine_pairs(seed=99, n=30):
@@ -41,7 +41,7 @@ def genuine_pairs(seed=99, n=30):
         second = rng.choice(files)
         while second == first:
             second = rng.choice(files)
-        yield os.path.join(gen_dir, first), os.path.join(gen_dir, second), 6.0
+        yield os.path.join(gen_dir, first), os.path.join(gen_dir, second), 6.0, False
 
 
 def load_model():
@@ -78,8 +78,7 @@ def dotnet_result(img1, img2, thr):
 def main():
     model, device = load_model()
     results = []
-    for pair in list(genuine_forged_pairs()) + list(genuine_pairs()):
-        img1, img2, thr = pair
+    for img1, img2, thr, expected in list(genuine_forged_pairs()) + list(genuine_pairs()):
         f1 = extract_features(model, device, img1)
         f2 = extract_features(model, device, img2)
         dist_py = distance(f1, f2)
@@ -88,10 +87,14 @@ def main():
         results.append({
             'img1': os.path.basename(img1),
             'img2': os.path.basename(img2),
+            'expected': expected,
             'is_forg_py': is_forg_py,
+            'match_py': is_forg_py == expected,
             'dist_py': dist_py,
             'is_forg_net': is_forg_net,
-            'dist_net': dist_net
+            'match_net': is_forg_net == expected,
+            'dist_net': dist_net,
+            'diff': dist_net - dist_py
         })
     with open('comparison_results.json', 'w') as f:
         json.dump(results, f, indent=2)
