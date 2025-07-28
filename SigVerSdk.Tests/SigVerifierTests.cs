@@ -15,11 +15,18 @@ public class SigVerifierTests
     {
         var modelPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../models/signet.onnx"));
         using var verifier = new SigVerifier(modelPath);
-        var images = new[] { "a1.png", "a2.png", "b1.png", "b2.png" };
+        var images = new[]
+        {
+            Path.Combine("001", "001_01.PNG"),
+            Path.Combine("001", "001_02.PNG"),
+            Path.Combine("002", "002_01.PNG"),
+            Path.Combine("002", "002_02.PNG")
+        };
         var times = new List<long>();
+        var dataDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../data"));
         foreach (var img in images)
         {
-            var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, $"../../../../data/{img}"));
+            var path = Path.Combine(dataDir, img);
             var sw = Stopwatch.StartNew();
             var output = verifier.ExtractFeatures(path);
             sw.Stop();
@@ -35,18 +42,19 @@ public class SigVerifierTests
     {
         var modelPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../models/signet.onnx"));
         using var verifier = new SigVerifier(modelPath);
+        var dataDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../data"));
         var pairs = new[]
         {
-            ("a1.png", "a2.png", false),
-            ("a1.png", "b1.png", true),
-            ("a1.png", "b2.png", true)
+            (Path.Combine("001", "001_01.PNG"), Path.Combine("001", "001_02.PNG"), false),
+            (Path.Combine("001", "001_01.PNG"), Path.Combine("002", "002_01.PNG"), true),
+            (Path.Combine("001", "001_01.PNG"), Path.Combine("002", "002_02.PNG"), true)
         };
 
         var times = new List<long>();
         foreach (var pair in pairs)
         {
-            var refPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, $"../../../../data/{pair.Item1}"));
-            var candPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, $"../../../../data/{pair.Item2}"));
+            var refPath = Path.Combine(dataDir, pair.Item1);
+            var candPath = Path.Combine(dataDir, pair.Item2);
             var sw = Stopwatch.StartNew();
             var isForged = verifier.IsForgery(refPath, candPath);
             sw.Stop();
