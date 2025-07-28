@@ -309,6 +309,28 @@ All 30 forged comparisons were correctly detected using a threshold of 0.8. All
 verification time was about 18.8 ms for forged pairs and 22.5 ms for genuine
 pairs.
 
+## Python vs .NET verification comparison
+
+The script `scripts/compare_results.py` reproduces the test pairs using both the
+Python pipeline and the C# library. It loads the ONNX model with
+`onnxruntime`, computes Euclidean distances for each pair and then calls the
+`FeatureDist` utility to obtain the distance reported by .NET. Results are
+written to `comparison.csv` with one row per comparison:
+
+```
+File1,File2,IsForgeryPython,DistPython,IsForgeryDotnet,DistDotnet,Mismatch,DistDiff
+```
+
+Run the script with:
+
+```bash
+PYTHONPATH=. python scripts/compare_results.py
+```
+
+Execution may require the `onnxruntime`, `scikit-image` and `opencv-python-headless`
+packages as well as the .NET SDK. The `so` directory must be available on the
+`LD_LIBRARY_PATH` for the .NET process.
+
 ## Meta‑learning
 
 Use the `sigver.metalearning.train` script to train a meta‑learner:
