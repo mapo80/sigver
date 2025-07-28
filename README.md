@@ -14,13 +14,14 @@ This code for feature extraction and writer-dependent classifiers is a re-implem
 
 # Installation
 
-This package requires python 3. Installation can be done with pip:
+This package requires Python 3.10+. Installation can be done with pip:
 
 ```bash
-pip install git+https://github.com/luizgh/sigver.git  --process-dependency-links
+pip install git+https://github.com/luizgh/sigver.git --process-dependency-links
 ```
 
-You can also clone this repository and install it with ```pip install -e <path/to/repository>  --process-dependency-links```
+You can also clone this repository and install it with `pip install -e <path/to/repository> --process-dependency-links`.
+You can install the dependencies with `pip install -r requirements.txt`.
 
 # Usage
 
@@ -132,8 +133,8 @@ with torch.no_grad(): # We don't need gradients. Inform torch so it doesn't comp
 ```
 
 See ```example.py``` for a complete example. For a jupyter notebook, see this [interactive example](https://nbviewer.jupyter.org/github/luizgh/sigver/blob/master/interactive_example.ipynb).
-
-
+## Converting weights to ONNX
+Run `python convert_to_onnx.py` to export the PyTorch models in `models/` to ONNX format. This requires the `onnx` package. The resulting files will be saved next to the original `.pth` weights.
 # Meta-learning 
 
 To train a meta-learning model, use the `sigver.metalearning.train` script:
