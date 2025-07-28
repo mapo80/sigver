@@ -329,8 +329,76 @@ PYTHONPATH=. python scripts/compare_results.py
 
 Execution may require the `onnxruntime`, `scikit-image` and `opencv-python-headless`
 packages as well as the .NET SDK. The `so` directory must be available on the
-`LD_LIBRARY_PATH` for the .NET process.
+### Comparison results
+#### Genuine vs forged
 
+
+| Nome file 1 | Nome file 2 | Valore atteso | Is forged python | Valore similarita python | Risultato python | Is forged dotnet | Valore similarita dotnet | Risultato dotnet | Mismatch | Diff |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 002_09.PNG | 0108002_03.png | True | False | 0.2167 | False | False | 0.2268 | False | False | 0.0100 |
+| 001_10.PNG | 0201001_04.png | True | True | 0.3936 | True | True | 0.4049 | True | False | 0.0113 |
+| 004_11.PNG | 0105004_01.png | True | False | 0.2652 | False | False | 0.2158 | False | False | -0.0494 |
+| 004_15.PNG | 0105004_02.png | True | False | 0.3083 | False | False | 0.2373 | False | False | -0.0711 |
+| 004_21.PNG | 0124004_01.png | True | False | 0.2412 | False | False | 0.1945 | False | False | -0.0467 |
+| 001_11.PNG | 0201001_03.png | True | True | 0.5040 | True | True | 0.4935 | True | False | -0.0105 |
+| 003_06.PNG | 0126003_04.png | True | False | 0.2710 | False | False | 0.3312 | False | False | 0.0602 |
+| 003_02.PNG | 0121003_02.png | True | True | 0.7522 | True | True | 0.7262 | True | False | -0.0260 |
+| 002_16.PNG | 0110002_01.png | True | False | 0.2250 | False | False | 0.2395 | False | False | 0.0144 |
+| 002_23.PNG | 0118002_04.png | True | True | 0.5209 | True | True | 0.5057 | True | False | -0.0151 |
+| 003_20.PNG | 0121003_04.png | True | True | 0.5799 | True | True | 0.5179 | True | False | -0.0620 |
+| 002_11.PNG | 0108002_01.png | True | False | 0.1905 | False | False | 0.2086 | False | False | 0.0182 |
+| 001_08.PNG | 0119001_01.png | True | False | 0.2794 | False | False | 0.2606 | False | False | -0.0189 |
+| 001_11.PNG | 0119001_02.png | True | True | 0.4132 | True | True | 0.4344 | True | False | 0.0212 |
+| 003_08.PNG | 0206003_04.png | True | False | 0.2021 | False | False | 0.1646 | False | False | -0.0376 |
+| 001_22.PNG | 0119001_02.png | True | True | 0.4359 | True | True | 0.4118 | True | False | -0.0241 |
+| 004_19.PNG | 0124004_01.png | True | False | 0.2597 | False | False | 0.1860 | False | False | -0.0736 |
+| 001_11.PNG | 0201001_04.png | True | True | 0.4151 | True | True | 0.4136 | True | False | -0.0015 |
+| 004_05.PNG | 0103004_03.png | True | True | 0.4219 | True | True | 0.4058 | True | False | -0.0162 |
+| 004_17.PNG | 0103004_02.png | True | False | 0.1614 | False | False | 0.1454 | False | False | -0.0160 |
+| 003_02.PNG | 0121003_03.png | True | True | 0.7400 | True | True | 0.7320 | True | False | -0.0080 |
+| 003_23.PNG | 0121003_01.png | True | True | 0.5576 | True | True | 0.4883 | True | False | -0.0692 |
+| 004_14.PNG | 0124004_01.png | True | True | 0.3852 | True | False | 0.3049 | False | True | -0.0803 |
+| 001_13.PNG | 0119001_01.png | True | False | 0.2402 | False | False | 0.2076 | False | False | -0.0326 |
+| 001_10.PNG | 0201001_04.png | True | True | 0.3936 | True | True | 0.4049 | True | False | 0.0113 |
+| 003_07.PNG | 0121003_02.png | True | True | 0.7565 | True | True | 0.6857 | True | False | -0.0708 |
+| 001_12.PNG | 0119001_03.png | True | True | 0.3962 | True | True | 0.3734 | True | False | -0.0228 |
+| 004_24.PNG | 0105004_02.png | True | False | 0.2713 | False | False | 0.1784 | False | False | -0.0929 |
+| 001_10.PNG | 0201001_03.png | True | True | 0.5016 | True | True | 0.4892 | True | False | -0.0124 |
+| 003_02.PNG | 0121003_02.png | True | True | 0.7522 | True | True | 0.7262 | True | False | -0.0260 |
+#### Genuine vs genuine
+
+| Nome file 1 | Nome file 2 | Valore atteso | Is forged python | Valore similarita python | Risultato python | Is forged dotnet | Valore similarita dotnet | Risultato dotnet | Mismatch | Diff |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 002_01.PNG | 002_13.PNG | False | False | 0.1972 | True | False | 0.1732 | True | False | -0.0240 |
+| 001_19.PNG | 001_09.PNG | False | False | 0.3363 | True | False | 0.3118 | True | False | -0.0245 |
+| 002_04.PNG | 002_09.PNG | False | False | 0.0589 | True | False | 0.0561 | True | False | -0.0028 |
+| 003_17.PNG | 003_13.PNG | False | False | 0.1790 | True | False | 0.2009 | True | False | 0.0219 |
+| 003_03.PNG | 003_06.PNG | False | False | 0.0845 | True | False | 0.0872 | True | False | 0.0027 |
+| 003_18.PNG | 003_17.PNG | False | False | 0.2158 | True | False | 0.2261 | True | False | 0.0104 |
+| 002_12.PNG | 002_13.PNG | False | False | 0.1219 | True | False | 0.1183 | True | False | -0.0036 |
+| 002_18.PNG | 002_11.PNG | False | False | 0.0656 | True | False | 0.0650 | True | False | -0.0006 |
+| 002_02.PNG | 002_04.PNG | False | False | 0.0356 | True | False | 0.0299 | True | False | -0.0057 |
+| 003_01.PNG | 003_05.PNG | False | False | 0.1197 | True | False | 0.1492 | True | False | 0.0295 |
+| 002_13.PNG | 002_14.PNG | False | False | 0.0430 | True | False | 0.0317 | True | False | -0.0113 |
+| 002_06.PNG | 002_15.PNG | False | False | 0.1023 | True | False | 0.1092 | True | False | 0.0069 |
+| 004_15.PNG | 004_23.PNG | False | False | 0.1465 | True | False | 0.1025 | True | False | -0.0440 |
+| 002_06.PNG | 002_23.PNG | False | False | 0.1345 | True | False | 0.1379 | True | False | 0.0034 |
+| 001_15.PNG | 001_08.PNG | False | False | 0.2323 | True | False | 0.2625 | True | False | 0.0303 |
+| 002_23.PNG | 002_16.PNG | False | False | 0.0637 | True | False | 0.0559 | True | False | -0.0078 |
+| 001_21.PNG | 001_22.PNG | False | False | 0.1498 | True | False | 0.1217 | True | False | -0.0281 |
+| 004_21.PNG | 004_09.PNG | False | False | 0.2239 | True | False | 0.2045 | True | False | -0.0194 |
+| 002_18.PNG | 002_11.PNG | False | False | 0.0656 | True | False | 0.0650 | True | False | -0.0006 |
+| 002_07.PNG | 002_15.PNG | False | False | 0.1064 | True | False | 0.1300 | True | False | 0.0235 |
+| 003_16.PNG | 003_23.PNG | False | False | 0.1700 | True | False | 0.1805 | True | False | 0.0105 |
+| 003_23.PNG | 003_17.PNG | False | False | 0.1794 | True | False | 0.1524 | True | False | -0.0270 |
+| 002_04.PNG | 002_11.PNG | False | False | 0.0936 | True | False | 0.0786 | True | False | -0.0150 |
+| 004_05.PNG | 004_18.PNG | False | False | 0.2060 | True | False | 0.2126 | True | False | 0.0065 |
+| 003_05.PNG | 003_12.PNG | False | False | 0.1003 | True | False | 0.1641 | True | False | 0.0638 |
+| 004_21.PNG | 004_02.PNG | False | False | 0.0631 | True | False | 0.0502 | True | False | -0.0129 |
+| 003_15.PNG | 003_10.PNG | False | True | 0.3652 | False | False | 0.3439 | True | True | -0.0212 |
+| 004_11.PNG | 004_16.PNG | False | False | 0.1399 | True | False | 0.1004 | True | False | -0.0395 |
+| 003_14.PNG | 003_01.PNG | False | True | 0.4215 | False | True | 0.4875 | False | False | 0.0661 |
+| 001_10.PNG | 001_16.PNG | False | False | 0.1584 | True | False | 0.1730 | True | False | 0.0146 |
 ## Meta‑learning
 
 Use the `sigver.metalearning.train` script to train a meta‑learner:
