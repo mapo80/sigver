@@ -319,6 +319,13 @@ python -m sigver.metalearning.train --dataset-path <path/to/dataset.npz> \
 ```
 `num-updates` specifies `K` in the paper, while `num-rf` controls how many random forgeries are used during adaptation.
 
+## Converting models to ONNX
+Run `python convert_to_onnx.py` to export the provided PyTorch weights to
+`models/*.onnx` files. The script requires the `onnx` package.
+
+There are currently no automated tests. After modifying the repository, ensure
+that the export script still runs without errors.
+
 ## Citation
 
 If you use this code, please cite:
