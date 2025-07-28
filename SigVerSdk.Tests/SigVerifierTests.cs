@@ -5,6 +5,7 @@ using System.Linq;
 using Xunit;
 using SigVerSdk;
 using System.Diagnostics;
+using SkiaSharp;
 
 namespace SigVerSdk.Tests;
 
@@ -63,6 +64,49 @@ public class SigVerifierTests
         }
         var avg = times.Average();
         Console.WriteLine($"Average verification time: {avg} ms");
+    }
+
+    [Fact]
+    public void PreprocessingMatchesPython()
+    {
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../"));
+        var dataImg = Path.Combine(root, "data", "001", "001_01.PNG");
+        var pythonScript = Path.Combine(root, "scripts", "save_preprocessed.py");
+        var tmpDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmpDir);
+
+        var psi = new ProcessStartInfo("python", $"{pythonScript} {tmpDir} {dataImg}")
+        {
+            WorkingDirectory = root,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        psi.Environment["PYTHONPATH"] = root;
+        using (var proc = Process.Start(psi)!)
+        {
+            proc.WaitForExit();
+            Assert.Equal(0, proc.ExitCode);
+        }
+
+        var pyFile = Path.Combine(tmpDir, "001_01_py.png");
+        var dotnetFile = Path.Combine(tmpDir, "001_01_dotnet.png");
+
+        var modelPath = Path.Combine(root, "models", "signet.onnx");
+        using var verifier = new SigVerifier(modelPath);
+        verifier.SavePreprocessed(dataImg, dotnetFile);
+
+        using var pyBmp = SKBitmap.Decode(pyFile)!;
+        using var netBmp = SKBitmap.Decode(dotnetFile)!;
+
+        Assert.Equal(pyBmp.Width, netBmp.Width);
+        Assert.Equal(pyBmp.Height, netBmp.Height);
+        for (int y = 0; y < pyBmp.Height; y++)
+        {
+            for (int x = 0; x < pyBmp.Width; x++)
+            {
+                Assert.Equal(pyBmp.GetPixel(x, y), netBmp.GetPixel(x, y));
+            }
+        }
     }
 }
 

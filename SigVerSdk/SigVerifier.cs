@@ -34,13 +34,15 @@ public class SigVerifier : IDisposable
         }
 
         byte thr = OtsuThreshold(gray);
-        int minR = gray.Height, maxR = -1, minC = gray.Width, maxC = -1;
+
+        using var blurred = GaussianBlur(gray, 2f);
+        int minR = blurred.Height, maxR = -1, minC = blurred.Width, maxC = -1;
         long sumR = 0, sumC = 0, count = 0;
-        for (int y = 0; y < gray.Height; y++)
+        for (int y = 0; y < blurred.Height; y++)
         {
-            for (int x = 0; x < gray.Width; x++)
+            for (int x = 0; x < blurred.Width; x++)
             {
-                byte val = gray.GetPixel(x, y).Red;
+                byte val = blurred.GetPixel(x, y).Red;
                 if (val <= thr)
                 {
                     if (y < minR) minR = y;
@@ -138,6 +140,19 @@ public class SigVerifier : IDisposable
             }
         }
         return (byte)threshold;
+    }
+
+    private static SKBitmap GaussianBlur(SKBitmap src, float sigma)
+    {
+        var info = new SKImageInfo(src.Width, src.Height, src.ColorType, src.AlphaType);
+        using var surface = SKSurface.Create(info);
+        var paint = new SKPaint { ImageFilter = SKImageFilter.CreateBlur(sigma, sigma, SKShaderTileMode.Clamp) };
+        surface.Canvas.DrawBitmap(src, 0, 0, paint);
+        surface.Canvas.Flush();
+        using var image = surface.Snapshot();
+        var dst = new SKBitmap(info);
+        image.ReadPixels(dst.Info, dst.GetPixels(), dst.Info.RowBytes, 0, 0);
+        return dst;
     }
 
     public float[] ExtractFeatures(string imagePath)
