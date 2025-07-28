@@ -49,8 +49,10 @@ public class SigVerifier : IDisposable
 
         byte thr = (byte)Cv2.Threshold(gray, new Mat(), 0, 255, ThresholdTypes.Otsu);
 
+        using var grayF = new Mat();
+        gray.ConvertTo(grayF, MatType.CV_64F);
         using var blurred = new Mat();
-        Cv2.GaussianBlur(gray, blurred, new Size(0, 0), 2);
+        Cv2.GaussianBlur(grayF, blurred, new Size(17, 17), 2, 0, BorderTypes.Reflect101);
 
         int minR = blurred.Rows, maxR = -1, minC = blurred.Cols, maxC = -1;
         long sumR = 0, sumC = 0, count = 0;
@@ -58,7 +60,7 @@ public class SigVerifier : IDisposable
         {
             for (int x = 0; x < blurred.Cols; x++)
             {
-                byte val = blurred.At<byte>(y, x);
+                double val = blurred.At<double>(y, x);
                 if (val <= thr)
                 {
                     if (y < minR) minR = y;
@@ -79,9 +81,9 @@ public class SigVerifier : IDisposable
         int cCenter = (int)(sumC / (double)count) - minC;
 
         var subsetRect = new Rect(minC, minR, maxC - minC + 1, maxR - minR + 1);
-        using var cropped = new Mat(gray, subsetRect);
+        using var cropped = new Mat(grayF, subsetRect);
 
-        var canvas = new Mat(CanvasHeight, CanvasWidth, MatType.CV_8UC1, Scalar.All(255));
+        var canvas = new Mat(CanvasHeight, CanvasWidth, MatType.CV_64F, Scalar.All(255));
         int rStart = CanvasHeight / 2 - rCenter;
         int cStart = CanvasWidth / 2 - cCenter;
         if (rStart < 0) rStart = 0;
@@ -94,17 +96,19 @@ public class SigVerifier : IDisposable
         {
             for (int x = 0; x < canvas.Cols; x++)
             {
-                byte v = canvas.At<byte>(y, x);
+                double v = canvas.At<double>(y, x);
                 if (v > thr) v = 255;
-                canvas.Set<byte>(y, x, (byte)(255 - v));
+                canvas.Set<double>(y, x, 255 - v);
             }
         }
 
         using var resized = new Mat();
-        Cv2.Resize(canvas, resized, new Size(ResizeWidth, ResizeHeight), 0, 0, InterpolationFlags.Lanczos4);
+        Cv2.Resize(canvas, resized, new Size(ResizeWidth, ResizeHeight), 0, 0, InterpolationFlags.Area);
 
         var cropRect = new Rect((ResizeWidth - 220) / 2, (ResizeHeight - 150) / 2, 220, 150);
-        var finalMat = new Mat(resized, cropRect).Clone();
+        using var finalF = new Mat(resized, cropRect);
+        var finalMat = new Mat();
+        finalF.ConvertTo(finalMat, MatType.CV_8U);
         canvas.Dispose();
         gray.Dispose();
         return finalMat;
