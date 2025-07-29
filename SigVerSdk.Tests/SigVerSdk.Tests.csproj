@@ -21,7 +21,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507">
-      <ExcludeAssets>native;runtime</ExcludeAssets>
+      <ExcludeAssets>native</ExcludeAssets>
     </PackageReference>
   </ItemGroup>
 
