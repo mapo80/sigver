@@ -399,6 +399,71 @@ packages as well as the .NET SDK. The `so` directory must be available on the
 | 004_11.PNG | 004_16.PNG | False | False | 0.1399 | True | False | 0.1004 | True | False | -0.0395 |
 | 003_14.PNG | 003_01.PNG | False | True | 0.4215 | False | True | 0.4875 | False | False | 0.0661 |
 | 001_10.PNG | 001_16.PNG | False | False | 0.1584 | True | False | 0.1730 | True | False | 0.0146 |
+
+## Signature Verification – Metriche di Base
+
+Qui di seguito riporto le statistiche descrittive delle distanze coseno e la
+confusion matrix al threshold di **0.35**.
+
+### 1. Statistica descrittiva
+
+| Classe    | Count | Mean | Std Dev | Min | 25° Perc | Median | 75° Perc | Max |
+|-----------|-------|------|---------|-----|----------|--------|----------|-----|
+| Genuine   | 𝑁₉    | 𝜇₉   | σ₉      | min₉ | p25₉     | med₉   | p75₉     | max₉ |
+| Forgery   | 𝑁ꜰ    | 𝜇ꜰ   | σꜰ      | minꜰ | p25ꜰ     | medꜰ   | p75ꜰ     | maxꜰ |
+
+- **Count** (𝑁): numero di coppie testate
+- **Mean**, **Std Dev**, **Min**, **Max**: media, deviazione standard, valore minimo e massimo della distanza coseno
+- **25° Perc**, **Median**, **75° Perc**: percentili di ordine 25, 50 e 75
+
+### 2. Confusion Matrix (threshold = 0.35)
+
+|               | Predicted Genuine | Predicted Forgery |
+|---------------|------------------|-------------------|
+| **Actual Genuine** | TP = …           | FN = …           |
+| **Actual Forgery** | FP = …           | TN = …           |
+
+- **TP** (True Positive): genuine classificate correttamente
+- **TN** (True Negative): forgery classificate correttamente
+- **FP** (False Positive): forgery classificate come genuine
+- **FN** (False Negative): genuine classificate come forgery
+
+#### Metriche derivate
+
+- **Accuracy** = (TP + TN) / (TP + TN + FP + FN)
+- **Precision** = TP / (TP + FP)
+- **Recall** = TP / (TP + FN)
+- **F1‑score** = 2 · (Precision · Recall) / (Precision + Recall)
+
+### 3. Come calcolare queste metriche
+
+Se vuoi generare rapidamente questi numeri in Python, ecco uno snippet di esempio:
+
+```python
+import pandas as pd
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
+
+# supponiamo tu abbia un DataFrame df con colonne ['label', 'distance']
+# dove label è 1 per genuine, 0 per forgery
+threshold = 0.35
+df['pred'] = (df['distance'] <= threshold).astype(int)
+
+# descrittive
+stats = df.groupby('label')['distance'].describe(percentiles=[.25, .5, .75])
+print(stats[['count','mean','std','min','25%','50%','75%','max']])
+
+# confusion matrix
+y_true = df['label']
+y_pred = df['pred']
+tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+print(f"TP={tp}, TN={tn}, FP={fp}, FN={fn}")
+
+# metriche
+print("Accuracy:", (tp+tn)/len(df))
+print("Precision:", precision_score(y_true, y_pred))
+print("Recall:", recall_score(y_true, y_pred))
+print("F1-score:", f1_score(y_true, y_pred))
+```
 ## Meta‑learning
 
 Use the `sigver.metalearning.train` script to train a meta‑learner:
