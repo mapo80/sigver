@@ -467,6 +467,97 @@ print("Precision:", precision_score(y_true, y_pred))
 print("Recall:", recall_score(y_true, y_pred))
 print("F1-score:", f1_score(y_true, y_pred))
 ```
+
+## 1. Score‑level Fusion tra i due modelli
+
+Fai girare la stessa coppia di firme su entrambi i modelli e combina le due distanze `d₁` e `d₂` in un unico score `s`:
+
+- **Media aritmetica**
+
+```
+s = (d₁ + d₂) / 2
+```
+
+- **Media pesata**
+
+```
+s = w·d₁ + (1 - w)·d₂
+```
+
+Stima `w` su un set di validazione (ad esempio una grid search in `[0,1]`).
+
+- **Min/Max**
+
+```
+s = min(d₁, d₂)
+```
+
+oppure
+
+```
+s = max(d₁, d₂)
+```
+
+Scegli "min" se vuoi ridurre i falsi negativi, "max" se preferisci diminuire i falsi positivi.
+
+---
+
+## 2. Calibrazione & score normalization
+
+Prima di applicare la soglia, uniforma le scale dei due modelli:
+
+- **Z‑norm**
+
+```
+s' = (s - μ) / σ
+```
+
+con `μ, σ` calcolati su un corpus di riferimento.
+
+- **Logistic Calibration**
+
+Addestra su un set di sviluppo una funzione
+
+```
+p = σ(a·s + b)
+```
+
+per trasformare la distanza `s` in una probabilità calibrata.
+
+---
+
+## 3. Metriche da rilevare
+
+### 3.1 Classificazione
+
+- **TPR (Recall)** = TP / (TP + FN)
+- **FPR** = FP / (FP + TN)
+- **Precision** = TP / (TP + FP)
+- **Accuracy** = (TP + TN) / (TP + TN + FP + FN)
+- **F1‑score** = 2·(Precision·Recall) / (Precision + Recall)
+
+### 3.2 Separabilità globale
+
+- **ROC curve** e **AUC**
+- **Equal Error Rate (EER)**: soglia per cui FPR = FNR
+
+### 3.3 Overlap delle distribuzioni
+
+Per le distanze (o gli score finali) delle due classi:
+
+- **Mean** e **Std Dev**
+- **25°**, **50°**, **75° Percentili**
+- **Bhattacharyya distance** o **Kullback‑Leibler divergence**
+
+### 3.4 Calibrazione
+
+- **Expected Calibration Error (ECE)**
+- **Negative Log‑Likelihood (NLL)** / **Log‑Loss**
+
+### 3.5 Robustezza
+
+- **Stabilità del punteggio**: `std(s)` su ripetizioni
+- **Sensitivity to noise**: variazione di `s` con rumore o cambiamenti di binarizzazione
 ## Meta‑learning
 
 Use the `sigver.metalearning.train` script to train a meta‑learner:
