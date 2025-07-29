@@ -66,6 +66,23 @@ public class MetricsTests
         Assert.NotEmpty(genuineDists);
         Assert.NotEmpty(forgeryDists);
 
+        static (double mean,double std,double min,double p25,double median,double p75,double max) Stats(List<double> values)
+        {
+            var arr = values.ToArray();
+            Array.Sort(arr);
+            double mean = arr.Average();
+            double std = Math.Sqrt(arr.Select(v => (v - mean) * (v - mean)).Average());
+            double min = arr.First();
+            double max = arr.Last();
+            double p25 = arr[(int)(0.25 * (arr.Length - 1))];
+            double median = arr[(int)(0.5 * (arr.Length - 1))];
+            double p75 = arr[(int)(0.75 * (arr.Length - 1))];
+            return (mean, std, min, p25, median, p75, max);
+        }
+
+        var gStats = Stats(genuineDists);
+        var fStats = Stats(forgeryDists);
+
         double threshold = 0.35;
         int tp = genuineDists.Count(d => d <= threshold);
         int fn = genuineDists.Count - tp;
@@ -77,6 +94,9 @@ public class MetricsTests
         double recall = tp / (double)(tp + fn);
         double f1 = 2 * precision * recall / (precision + recall);
 
+        Console.WriteLine($"Class\tCount\tMean\tStdDev\tMin\tP25\tMedian\tP75\tMax");
+        Console.WriteLine($"Genuine\t{genuineDists.Count}\t{gStats.mean:F4}\t{gStats.std:F4}\t{gStats.min:F4}\t{gStats.p25:F4}\t{gStats.median:F4}\t{gStats.p75:F4}\t{gStats.max:F4}");
+        Console.WriteLine($"Forgery\t{forgeryDists.Count}\t{fStats.mean:F4}\t{fStats.std:F4}\t{fStats.min:F4}\t{fStats.p25:F4}\t{fStats.median:F4}\t{fStats.p75:F4}\t{fStats.max:F4}");
         Console.WriteLine($"TP={tp} FN={fn} FP={fp} TN={tn}");
         Console.WriteLine($"Accuracy={accuracy:F4} Precision={precision:F4} Recall={recall:F4} F1={f1:F4}");
 
