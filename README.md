@@ -59,12 +59,22 @@ validates the output, throwing an exception when the model returns NaN or
 infinite values.
 
 ### Post‑processing in C#
-Once the 2048‑dimensional vector has been produced by the ONNX model it is
-normalised with L2 norm. The SDK exposes `SigVerifier.CosineDistance` which
-computes `1 - dot(v1, v2)` between two normalised feature vectors. The helper
-method `IsForgery` extracts and normalises features for two images, calculates
-their cosine distance and compares it against a configurable threshold
-(default 0.35) to decide whether the candidate signature is forged.
+After inference the SDK performs a small sequence of steps to transform the raw
+output of the neural network into a final similarity score:
+
+1. **Vector validation** – the output must contain exactly 2048 elements and
+   cannot include `NaN` or infinite values; otherwise an exception is thrown.
+2. **L2 normalisation** – the feature vector is divided by its Euclidean norm so
+   that all vectors lie on the unit hypersphere.
+3. **Cosine distance computation** – `SigVerifier.CosineDistance` returns
+   `1 – dot(v1, v2)` for two normalised vectors.
+4. **Thresholding** – `IsForgery` extracts and normalises the features of the
+   reference and candidate signatures, computes the cosine distance and compares
+   it with a configurable threshold (default 0.35) to decide whether the
+   candidate is forged.
+
+The unit tests in `SigVerSdk.Tests` illustrate a simple verification scenario
+comparing two signatures.
 
 The unit tests in `SigVerSdk.Tests` illustrate a simple verification scenario comparing two signatures.
 
