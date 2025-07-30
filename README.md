@@ -409,8 +409,8 @@ confusion matrix al threshold di **0.35**.
 
 | Classe    | Count | Mean | Std Dev | Min | 25° Perc | Median | 75° Perc | Max |
 |-----------|-------|------|---------|-----|----------|--------|----------|-----|
-| Genuine   | 1104 | 0.1591 | 0.0983 | 0.0212 | 0.0851 | 0.1366 | 0.2156 | 0.5887 |
-| Forgery   | 1032 | 0.3174 | 0.1660 | 0.0353 | 0.1901 | 0.2736 | 0.4313 | 0.7906 |
+| Genuine   | 1104 | 0.0092 | 0.0135 | 0.0003 | 0.0018 | 0.0033 | 0.0088 | 0.0713 |
+| Forgery   | 1032 | 0.0266 | 0.0327 | 0.0003 | 0.0044 | 0.0105 | 0.0381 | 0.1519 |
 
 - **Count** (𝑁): numero di coppie testate
 - **Mean**, **Std Dev**, **Min**, **Max**: media, deviazione standard, valore minimo e massimo della distanza coseno
@@ -420,8 +420,8 @@ confusion matrix al threshold di **0.35**.
 
 |               | Predicted Genuine | Predicted Forgery |
 |---------------|------------------|-------------------|
-| **Actual Genuine** | TP = 1048           | FN = 56           |
-| **Actual Forgery** | FP = 657           | TN = 375           |
+| **Actual Genuine** | TP = 1104           | FN = 0           |
+| **Actual Forgery** | FP = 1032           | TN = 0           |
 
 - **TP** (True Positive): genuine classificate correttamente
 - **TN** (True Negative): forgery classificate correttamente
@@ -435,8 +435,10 @@ confusion matrix al threshold di **0.35**.
 - **Recall** = TP / (TP + FN)
 - **F1‑score** = 2 · (Precision · Recall) / (Precision + Recall)
 
-Per il dataset di esempio: **Accuracy** = 0.6662, **Precision** = 0.6147,
-**Recall** = 0.9493, **F1-score** = 0.7462.
+Per il dataset di esempio: **Accuracy** = 0.5169, **Precision** = 0.5169,
+**Recall** = 1.0000, **F1-score** = 0.6815. Ulteriori misure: **AUC** = 0.7324,
+**EER** = 0.3343 (soglia 0.0056), **Bhattacharyya distance** = 0.1635,
+**Log‑Loss** = 0.6669 e **ECE** = 0.0658.
 
 ### 3. Come calcolare queste metriche
 

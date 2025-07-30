@@ -89,16 +89,44 @@ public class MetricsTests
         int fp = forgeryDists.Count(d => d <= threshold);
         int tn = forgeryDists.Count - fp;
 
-        double accuracy = (double)(tp + tn) / (tp + tn + fp + fn);
-        double precision = tp / (double)(tp + fp);
-        double recall = tp / (double)(tp + fn);
-        double f1 = 2 * precision * recall / (precision + recall);
-
         Console.WriteLine($"Class\tCount\tMean\tStdDev\tMin\tP25\tMedian\tP75\tMax");
         Console.WriteLine($"Genuine\t{genuineDists.Count}\t{gStats.mean:F4}\t{gStats.std:F4}\t{gStats.min:F4}\t{gStats.p25:F4}\t{gStats.median:F4}\t{gStats.p75:F4}\t{gStats.max:F4}");
         Console.WriteLine($"Forgery\t{forgeryDists.Count}\t{fStats.mean:F4}\t{fStats.std:F4}\t{fStats.min:F4}\t{fStats.p25:F4}\t{fStats.median:F4}\t{fStats.p75:F4}\t{fStats.max:F4}");
         Console.WriteLine($"TP={tp} FN={fn} FP={fp} TN={tn}");
+
+        double accuracy = (double)(tp + tn) / (tp + tn + fp + fn);
+        double precision = tp / (double)(tp + fp);
+        double recall = tp / (double)(tp + fn);
+        double f1 = 2 * precision * recall / (precision + recall);
         Console.WriteLine($"Accuracy={accuracy:F4} Precision={precision:F4} Recall={recall:F4} F1={f1:F4}");
+
+        var all = genuineDists.Select(d => (dist: d, label: 1)).Concat(forgeryDists.Select(d => (dist: d, label: 0)))
+            .OrderBy(t => t.dist).ToArray();
+        int P = genuineDists.Count;
+        int N = forgeryDists.Count;
+        double prevFpr = 0, prevTpr = 0, auc = 0;
+        double eerDiff = double.MaxValue; double eer = 0; double eerThr = threshold;
+        int tpCount = 0, fpCount = 0;
+        foreach (var item in all)
+        {
+            if (item.label == 1) tpCount++; else fpCount++;
+            double tprVal = tpCount / (double)P;
+            double fprVal = fpCount / (double)N;
+            auc += (fprVal - prevFpr) * (tprVal + prevTpr) / 2.0;
+            prevFpr = fprVal; prevTpr = tprVal;
+            double fnrVal = 1 - tprVal;
+            double diff = Math.Abs(fprVal - fnrVal);
+            if (diff < eerDiff)
+            {
+                eerDiff = diff; eer = (fprVal + fnrVal) / 2; eerThr = item.dist;
+            }
+        }
+        auc = Math.Clamp(auc, 0, 1);
+        Console.WriteLine($"AUC={auc:F4} EER={eer:F4} thr@EER={eerThr:F4}");
+
+        double bhatta = 0.25 * Math.Log(0.25 * (gStats.std*gStats.std/(fStats.std*fStats.std) + fStats.std*fStats.std/(gStats.std*gStats.std) + 2))
+                         + 0.25 * (gStats.mean - fStats.mean) * (gStats.mean - fStats.mean) / (gStats.std*gStats.std + fStats.std*fStats.std);
+        Console.WriteLine($"Bhattacharyya={bhatta:F4}");
 
         Assert.InRange(accuracy, 0.0, 1.0);
         Assert.InRange(precision, 0.0, 1.0);
