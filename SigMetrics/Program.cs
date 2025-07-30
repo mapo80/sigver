@@ -3,17 +3,18 @@ using System.Globalization;
 using System.Linq;
 using System.Collections.Generic;
 
-// Command line: SigMetrics <dataDir> [threshold] [w]
+// Command line: SigMetrics <dataDir> [threshold] [w|grid]
 
 if (args.Length < 1)
 {
-    Console.WriteLine("Usage: SigMetrics <dataDir> [threshold] [w]");
+    Console.WriteLine("Usage: SigMetrics <dataDir> [threshold] [w|grid]");
     return;
 }
 
 string dataDir = args[0];
 float threshold = args.Length >= 2 ? float.Parse(args[1], CultureInfo.InvariantCulture) : 0.35f;
-float w = args.Length >= 3 ? float.Parse(args[2], CultureInfo.InvariantCulture) : 0.5f;
+bool grid = args.Length >= 3 && args[2].Equals("grid", StringComparison.OrdinalIgnoreCase);
+float w = args.Length >= 3 && !grid ? float.Parse(args[2], CultureInfo.InvariantCulture) : 0.5f;
 
 var basePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
 var modelPath = Path.Combine(basePath, "models", "signet.onnx");
@@ -63,8 +64,6 @@ foreach (var dir in Directory.GetDirectories(dataDir))
 // compute fused scores
 List<double> avgGen = d1Gen.Zip(d2Gen, (a,b) => (a+b)/2).ToList();
 List<double> avgFor = d1For.Zip(d2For, (a,b) => (a+b)/2).ToList();
-List<double> wGen = d1Gen.Zip(d2Gen, (a,b) => w*a + (1-w)*b).ToList();
-List<double> wFor = d1For.Zip(d2For, (a,b) => w*a + (1-w)*b).ToList();
 List<double> minGen = d1Gen.Zip(d2Gen, Math.Min).ToList();
 List<double> minFor = d1For.Zip(d2For, Math.Min).ToList();
 List<double> maxGen = d1Gen.Zip(d2Gen, Math.Max).ToList();
@@ -73,7 +72,24 @@ List<double> maxFor = d1For.Zip(d2For, Math.Max).ToList();
 Evaluate("SigNet", d1Gen, d1For);
 Evaluate("SigNet-F", d2Gen, d2For);
 Evaluate("avg", avgGen, avgFor);
-Evaluate($"w={w:F1}", wGen, wFor);
+
+if (grid)
+{
+    for (int i=0;i<=10;i++)
+    {
+        float ww = i/10f;
+        var g = d1Gen.Zip(d2Gen, (a,b)=> ww*a + (1-ww)*b).ToList();
+        var f = d1For.Zip(d2For, (a,b)=> ww*a + (1-ww)*b).ToList();
+        Evaluate($"w={ww:F1}", g, f);
+    }
+}
+else
+{
+    var wGen = d1Gen.Zip(d2Gen, (a,b)=> w*a + (1-w)*b).ToList();
+    var wFor = d1For.Zip(d2For, (a,b)=> w*a + (1-w)*b).ToList();
+    Evaluate($"w={w:F1}", wGen, wFor);
+}
+
 Evaluate("min", minGen, minFor);
 Evaluate("max", maxGen, maxFor);
 

@@ -462,9 +462,12 @@ Altre misure: **AUC** = 0.8032, **EER** = 0.2818 (thr ≈ 0.1993),
 | SigNet   | 0.2356 | 0.1567 | 0.8032 | 0.2818 | 1.0000 | 1.0000 | 0.1068 | 0.6041 |
 | SigNet‑F | 0.1500 | 0.1064 | 0.8303 | 0.2734 | 1.0000 | 1.0000 | 0.1816 | 0.6295 |
 | avg      | 0.1928 | 0.1282 | 0.8214 | 0.2701 | 1.0000 | 1.0000 | 0.1413 | 0.6141 |
-| w=0.5    | 0.1928 | 0.1282 | 0.8214 | 0.2701 | 1.0000 | 1.0000 | 0.1413 | 0.6141 |
+| w=0.0    | 0.1500 | 0.1064 | 0.8303 | 0.2734 | 1.0000 | 1.0000 | 0.1816 | 0.6295 |
 | min      | 0.1485 | 0.1055 | 0.8319 | 0.2692 | 1.0000 | 1.0000 | 0.1825 | 0.6298 |
 | max      | 0.2372 | 0.1566 | 0.8045 | 0.2809 | 1.0000 | 1.0000 | 0.1078 | 0.6033 |
+
+La ricerca a griglia su `w` ha indicato **w = 0.0** (ossia l'uso del solo
+SigNet‑F) come opzione con AUC più elevata su questo dataset di esempio.
 
 ## Descrizione delle metriche
 
@@ -511,12 +514,13 @@ statistiche su una directory strutturata come `data`.
 Esempio d'uso:
 
 ```bash
-/root/dotnet/dotnet run --project SigMetrics/SigMetrics.csproj data 0.35 0.7
+/root/dotnet/dotnet run --project SigMetrics/SigMetrics.csproj data 0.35 grid
 ```
 
-Il terzo parametro è opzionale e specifica il peso `w` della media pesata nella
-fusion dei due modelli (default 0.5). Il programma stampa le metriche per
-`SigNet`, `SigNet-F` e per i vari metodi di fusione.
+Il terzo parametro può essere un valore di `w` (es. `0.7`) oppure la parola
+`grid` per eseguire automaticamente la ricerca su `w ∈ {0.0, 0.1, …, 1.0}`.
+Il programma stampa le metriche per `SigNet`, `SigNet-F` e per tutti i metodi
+di fusione.
 
 ## 1. Score‑level Fusion tra i due modelli
 
