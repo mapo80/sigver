@@ -10,7 +10,7 @@ if (args.Length < 1)
 string dataDir = args[0];
 float threshold = args.Length >= 2 ? float.Parse(args[1], CultureInfo.InvariantCulture) : 0.35f;
 
-var modelPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "models", "signet.onnx"));
+var modelPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "models", "signet.onnx"));
 using var verifier = new SigVerifier(modelPath);
 
 List<double> genuineDists = new();
