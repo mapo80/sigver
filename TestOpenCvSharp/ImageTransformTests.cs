@@ -18,7 +18,7 @@ namespace TestOpenCvSharp
                 NativeLibrary.Load(libPath);
             }
 
-            var imgPath = Path.Combine(baseDir, "dataset", "lena.jpg");
+            var imgPath = Path.Combine(baseDir, "data", "001", "001_01.PNG");
             Assert.True(File.Exists(imgPath), $"Image not found at {imgPath}");
 
             using var src = Cv2.ImRead(imgPath);
