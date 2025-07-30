@@ -400,59 +400,72 @@ packages as well as the .NET SDK. The `so` directory must be available on the
 | 003_14.PNG | 003_01.PNG | False | True | 0.4215 | False | True | 0.4875 | False | False | 0.0661 |
 | 001_10.PNG | 001_16.PNG | False | False | 0.1584 | True | False | 0.1730 | True | False | 0.0146 |
 
-## Signature Verification – Metriche di Base
+## Metriche di Base
 
-Qui di seguito riporto le statistiche descrittive delle distanze coseno e la
-confusion matrix ai threshold di **0.35** e **0.0056** (EER).
+Qui di seguito sono riportate le principali statistiche del dataset a soglia
+**0.35**.
 
-### 1. Statistica descrittiva
+### Statistica descrittiva
 
-| Classe    | Count | Mean | Std Dev | Min | 25° Perc | Median | 75° Perc | Max |
-|-----------|-------|------|---------|-----|----------|--------|----------|-----|
-| Genuine   | 1104 | 0.1591 | 0.0983 | 0.0212 | 0.0851 | 0.1366 | 0.2156 | 0.5887 |
-| Forgery   | 1032 | 0.3174 | 0.1660 | 0.0353 | 0.1901 | 0.2736 | 0.4313 | 0.7906 |
+| Classe  | Count | Mean   | Std Dev | Min    | 25° Perc | Median | 75° Perc | Max    |
+|---------|------:|-------:|--------:|-------:|---------:|-------:|---------:|-------:|
+| Genuine | 1104  | 0.1591 | 0.0983  | 0.0212 | 0.0851   | 0.1366 | 0.2156   | 0.5887 |
+| Forgery | 1032  | 0.3174 | 0.1660  | 0.0353 | 0.1901   | 0.2736 | 0.4313   | 0.7906 |
 
-- **Count** (𝑁): numero di coppie testate
-- **Mean**, **Std Dev**, **Min**, **Max**: media, deviazione standard, valore minimo e massimo della distanza coseno
-- **25° Perc**, **Median**, **75° Perc**: percentili di ordine 25, 50 e 75
-
-### 2. Confusion Matrix (threshold = 0.35)
+### Confusion matrix (thr = 0.35)
 
 |               | Predicted Genuine | Predicted Forgery |
 |---------------|------------------|-------------------|
 | **Actual Genuine** | TP = 1104           | FN = 0           |
 | **Actual Forgery** | FP = 1032           | TN = 0           |
 
-- **TP** (True Positive): genuine classificate correttamente
-- **TN** (True Negative): forgery classificate correttamente
-- **FP** (False Positive): forgery classificate come genuine
-- **FN** (False Negative): genuine classificate come forgery
+**Accuracy** = 0.5169, **Precision** = 0.5169, **Recall** = 1.0000,
+**F1‑score** = 0.6815
 
-#### Metriche derivate
+## Metriche Avanzate
 
-- **Accuracy** = (TP + TN) / (TP + TN + FP + FN)
-- **Precision** = TP / (TP + FP)
-- **Recall** = TP / (TP + FN)
-- **F1‑score** = 2 · (Precision · Recall) / (Precision + Recall)
+Questa sezione riassume le prestazioni a soglia **0.0056** (EER) e le misure di
+separabilità/calibrazione.
 
-Per il dataset di esempio: **Accuracy** = 0.5169, **Precision** = 0.5169,
-**Recall** = 1.0000, **F1-score** = 0.6815. Ulteriori misure: **AUC** = 0.7324,
-**EER** = 0.3343 (soglia 0.0056), **Bhattacharyya distance** = 0.1635,
-**Log‑Loss** = 0.6669 e **ECE** = 0.0658.
-
-### 2.1 Confusion Matrix (threshold = 0.0056)
+### Confusion matrix (thr = 0.0056)
 
 |               | Predicted Genuine | Predicted Forgery |
 |---------------|------------------|-------------------|
 | **Actual Genuine** | TP = 0             | FN = 1104        |
 | **Actual Forgery** | FP = 0             | TN = 1032        |
 
-Per lo stesso dataset a soglia 0.0056: **Accuracy** = 0.4831, **Precision** = 0,
-**Recall** = 0, **F1-score** = 0.0000. Ulteriori misure: **AUC** = 0.8032,
-**EER** = 0.2818 (thr ≈ 0.1993), **Precision@1%FPR** = 0.9389,
-**Precision@5%FPR** = 0.8921, **Bhattacharyya distance** = 0.2339.
+**Accuracy** = 0.4831, **Precision** = 0, **Recall** = 0, **F1‑score** = 0.0000
 
-### 3. Come calcolare queste metriche
+Altre misure: **AUC** = 0.8032, **EER** = 0.2818 (thr ≈ 0.1993),
+**Precision@1%FPR** = 0.9389, **Precision@5%FPR** = 0.8921,
+**Bhattacharyya distance** = 0.2339, **Log‑Loss** = 0.6669, **ECE** = 0.0658.
+
+### Tabella di tracking
+
+| Metodo   | Thr   | TP   | FN   | FP   | TN   | Prec   | Rec   | F1    | FPR   | EER   | AUC   |
+|----------|------:|-----:|-----:|-----:|-----:|-------:|------:|------:|------:|------:|------:|
+| Baseline | 0.35  | 1104 | 0    | 1032 | 0    | 0.5169 | 1.0000 | 0.6815 | 1.0000 | 0.3343 | 0.7324 |
+| EER Thr  | 0.0056 | 0    | 1104 | 0    | 1032 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.2818 | 0.8032 |
+
+### Tabella di raccolta risultati
+
+| Metodo   | Mean  | Std   | AUC   | EER   | Prec@1%FPR | Prec@5%FPR | ECE  | Log‑Loss |
+|----------|------:|------:|------:|------:|-----------:|-----------:|-----:|---------:|
+| SigNet   | 0.2356 | 0.1567 | 0.8032 | 0.2818 | 0.9389 | 0.8921 | –   | –       |
+| SigNet‑F | …    | …    | …    | …    | …      | …      | –   | –       |
+| avg      | …    | …    | …    | …    | …      | …      | –   | –       |
+| w=0.x    | …    | …    | …    | …    | …      | …      | …   | …       |
+| min      | …    | …    | …    | …    | …      | …      | –   | –       |
+| max      | …    | …    | …    | …    | …      | …      | –   | –       |
+
+## Descrizione delle metriche
+
+Le tabelle precedenti riportano le statistiche chiave calcolate tramite il test
+`MetricsTests` e la CLI `SigMetrics`. Di seguito viene riepilogato come
+ottenere tali misure e il significato dei vari indicatori.
+
+### Calcolo rapido con Python
+
 
 Se vuoi generare rapidamente questi numeri in Python, ecco uno snippet di esempio:
 
@@ -616,21 +629,6 @@ Per le distanze (o gli score finali) delle due classi:
    - Confronto di AUC ed EER tra SigNet, SigNet‑F ed ensemble
    - Miglioramento della distanza tra le distribuzioni genuine e forgery
 
-### Tabella di tracking
-
-| Metodo     | Thr   | TP   | FN   | FP   | TN   | Prec   | Rec   | F1    | FPR   | EER   | AUC   |
-|------------|-------|------|------|------|------|--------|-------|-------|-------|-------|-------|
-| Baseline   | 0.35  | 1104 | 0    | 1032 | 0    | 0.5169 | 1.0000 | 0.6815 | 1.0000 | 0.3343 | 0.7324 |
-| EER Thr    | 0.0056 | 0    | 1104 | 0    | 1032 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.2818 | 0.8032 |
-
-### Tabella di raccolta risultati
-
-| Metodo       | Mean | Std | AUC | EER | Prec@1%FPR | Prec@5%FPR | ECE | Log‑Loss |
-|--------------|------|-----|-----|-----|------------|------------|-----|----------|
-| SigNet       | 0.2356 | 0.1567 | 0.8032 | 0.2818 | 0.9389 | 0.8921 | –   | –        |
-| SigNet‑F     | …    | …   | …   | …   | …          | …          | –   | –        |
-| avg          | …    | …   | …   | …   | …          | …          | –   | –        |
-| w=0.x        | …    | …   | …   | …   | …          | …          | …   | …        |
 | min          | …    | …   | …   | …   | …          | …          | –   | –        |
 | max          | …    | …   | …   | …   | …          | …          | –   | –        |
 ## Meta‑learning
