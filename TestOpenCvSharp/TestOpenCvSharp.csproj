@@ -22,8 +22,8 @@
       <Link>libOpenCvSharpExtern.so</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="../dataset/lena.jpg">
-      <Link>dataset/lena.jpg</Link>
+    <Content Include="../data/001/001_01.PNG">
+      <Link>data/001/001_01.PNG</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

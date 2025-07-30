@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+  <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -21,7 +21,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507">
-      <ExcludeAssets>native;runtime</ExcludeAssets>
+      <ExcludeAssets>native</ExcludeAssets>
     </PackageReference>
   </ItemGroup>
 

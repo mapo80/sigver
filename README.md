@@ -58,6 +58,24 @@ centered on a 1360×840 canvas, cleaned with Otsu thresholding, resized to
 validates the output, throwing an exception when the model returns NaN or
 infinite values.
 
+### Post‑processing in C#
+After inference the SDK performs a small sequence of steps to transform the raw
+output of the neural network into a final similarity score:
+
+1. **Vector validation** – the output must contain exactly 2048 elements and
+   cannot include `NaN` or infinite values; otherwise an exception is thrown.
+2. **L2 normalisation** – the feature vector is divided by its Euclidean norm so
+   that all vectors lie on the unit hypersphere.
+3. **Cosine distance computation** – `SigVerifier.CosineDistance` returns
+   `1 – dot(v1, v2)` for two normalised vectors.
+4. **Thresholding** – `IsForgery` extracts and normalises the features of the
+   reference and candidate signatures, computes the cosine distance and compares
+   it with a configurable threshold (default 0.35) to decide whether the
+   candidate is forged.
+
+The unit tests in `SigVerSdk.Tests` illustrate a simple verification scenario
+comparing two signatures.
+
 The unit tests in `SigVerSdk.Tests` illustrate a simple verification scenario comparing two signatures.
 
 If the required SDK is missing, run the provided install script before building:
@@ -226,89 +244,226 @@ each pair.
 
 ## Test results
 
-The tables below show the outcome of running the signature verifier on 60
-randomly selected pairs from the `data` directory. Half of the pairs compare a
-genuine signature with a forged one, while the other half compare two genuine
-signatures of the same user. Each comparison reports whether the verifier
-behaved as expected and how long it took.
+The dataset `docs/eval_pairs.csv` contains 200 randomly selected pairs (100 genuine vs forged and 100 genuine vs genuine). Each pair was processed with the final ensemble verifier.
 
 ### Genuine vs forged
-
-| Genuine | Forged | Detected | Time (ms) |
-|---------|--------|----------|-----------|
-| 002_09.PNG | 0108002_03.png | True | 18 |
-| 001_10.PNG | 0201001_04.png | True | 22 |
-| 004_11.PNG | 0105004_01.png | True | 14 |
-| 004_15.PNG | 0105004_02.png | True | 14 |
-| 004_21.PNG | 0124004_01.png | True | 14 |
-| 001_11.PNG | 0201001_03.png | True | 28 |
-| 003_06.PNG | 0126003_04.png | True | 23 |
-| 003_02.PNG | 0121003_02.png | True | 32 |
-| 002_16.PNG | 0110002_01.png | True | 16 |
-| 002_23.PNG | 0118002_04.png | True | 17 |
-| 003_20.PNG | 0121003_04.png | True | 20 |
-| 002_11.PNG | 0108002_01.png | True | 26 |
-| 001_08.PNG | 0119001_01.png | True | 17 |
-| 001_11.PNG | 0119001_02.png | True | 20 |
-| 003_08.PNG | 0206003_04.png | True | 16 |
-| 001_22.PNG | 0119001_02.png | True | 18 |
-| 004_19.PNG | 0124004_01.png | True | 15 |
-| 001_11.PNG | 0201001_04.png | True | 23 |
-| 004_05.PNG | 0103004_03.png | True | 16 |
-| 004_17.PNG | 0103004_02.png | True | 16 |
-| 003_02.PNG | 0121003_03.png | True | 16 |
-| 003_23.PNG | 0121003_01.png | True | 16 |
-| 004_14.PNG | 0124004_01.png | True | 19 |
-| 001_13.PNG | 0119001_01.png | True | 22 |
-| 001_10.PNG | 0201001_04.png | True | 20 |
-| 003_07.PNG | 0121003_02.png | True | 17 |
-| 001_12.PNG | 0119001_03.png | True | 20 |
-| 004_24.PNG | 0105004_02.png | True | 15 |
-| 001_10.PNG | 0201001_03.png | True | 18 |
-| 003_02.PNG | 0121003_02.png | True | 16 |
-
+| Genuine | Forged | Detected |
+|---------|--------|----------|
+| 001_19.PNG | 0119001_02.png | True |
+| 002_02.PNG | 0118002_03.png | True |
+| 001_16.PNG | 0119001_03.png | True |
+| 004_04.PNG | 0105004_03.png | True |
+| 003_07.PNG | 0206003_04.png | True |
+| 004_10.PNG | 0103004_02.png | True |
+| 003_08.PNG | 0121003_01.png | True |
+| 001_17.PNG | 0201001_01.png | True |
+| 001_14.PNG | 0119001_03.png | True |
+| 002_19.PNG | 0108002_03.png | True |
+| 001_13.PNG | 0119001_01.png | True |
+| 003_08.PNG | 0206003_02.png | True |
+| 002_13.PNG | 0118002_02.png | True |
+| 004_07.PNG | 0103004_04.png | True |
+| 004_16.PNG | 0105004_01.png | True |
+| 002_20.PNG | 0108002_02.png | True |
+| 004_14.PNG | 0105004_04.png | True |
+| 002_05.PNG | 0118002_04.png | True |
+| 002_01.PNG | 0108002_04.png | True |
+| 002_11.PNG | 0118002_04.png | True |
+| 001_20.PNG | 0119001_01.png | True |
+| 001_24.PNG | 0119001_04.png | True |
+| 003_07.PNG | 0126003_03.png | True |
+| 002_14.PNG | 0108002_01.png | True |
+| 002_07.PNG | 0108002_02.png | True |
+| 004_14.PNG | 0103004_02.png | True |
+| 001_20.PNG | 0119001_03.png | True |
+| 001_11.PNG | 0201001_03.png | True |
+| 002_16.PNG | 0118002_04.png | True |
+| 001_20.PNG | 0119001_04.png | True |
+| 002_03.PNG | 0108002_01.png | True |
+| 003_09.PNG | 0206003_03.png | True |
+| 003_21.PNG | 0206003_04.png | True |
+| 002_07.PNG | 0118002_02.png | True |
+| 001_14.PNG | 0119001_01.png | True |
+| 002_20.PNG | 0108002_03.png | True |
+| 004_05.PNG | 0105004_02.png | True |
+| 004_17.PNG | 0105004_02.png | True |
+| 002_12.PNG | 0118002_03.png | True |
+| 001_12.PNG | 0119001_03.png | True |
+| 001_01.PNG | 0201001_01.png | True |
+| 001_06.PNG | 0201001_01.png | True |
+| 001_06.PNG | 0201001_01.png | True |
+| 001_18.PNG | 0119001_04.png | True |
+| 002_15.PNG | 0118002_04.png | True |
+| 004_17.PNG | 0124004_03.png | True |
+| 001_20.PNG | 0119001_01.png | True |
+| 002_14.PNG | 0108002_01.png | True |
+| 003_05.PNG | 0121003_03.png | True |
+| 003_02.PNG | 0126003_02.png | True |
+| 001_12.PNG | 0201001_01.png | True |
+| 004_06.PNG | 0105004_02.png | True |
+| 004_09.PNG | 0124004_03.png | True |
+| 003_09.PNG | 0126003_03.png | True |
+| 001_20.PNG | 0119001_01.png | True |
+| 002_09.PNG | 0108002_03.png | True |
+| 003_22.PNG | 0121003_03.png | True |
+| 001_11.PNG | 0201001_04.png | True |
+| 002_18.PNG | 0110002_03.png | True |
+| 001_04.PNG | 0119001_03.png | True |
+| 003_07.PNG | 0206003_04.png | True |
+| 001_06.PNG | 0119001_03.png | True |
+| 003_12.PNG | 0126003_03.png | True |
+| 001_19.PNG | 0201001_03.png | True |
+| 003_07.PNG | 0206003_02.png | True |
+| 002_15.PNG | 0118002_04.png | True |
+| 001_08.PNG | 0201001_03.png | True |
+| 001_08.PNG | 0119001_04.png | True |
+| 003_03.PNG | 0126003_01.png | True |
+| 004_23.PNG | 0124004_03.png | True |
+| 003_09.PNG | 0121003_02.png | True |
+| 002_04.PNG | 0108002_01.png | True |
+| 002_12.PNG | 0110002_04.png | True |
+| 002_10.PNG | 0110002_03.png | True |
+| 003_06.PNG | 0121003_02.png | True |
+| 001_17.PNG | 0201001_04.png | True |
+| 004_10.PNG | 0124004_02.png | True |
+| 001_15.PNG | 0201001_02.png | True |
+| 004_22.PNG | 0124004_03.png | True |
+| 002_10.PNG | 0118002_01.png | True |
+| 003_22.PNG | 0126003_03.png | True |
+| 003_01.PNG | 0121003_01.png | True |
+| 001_21.PNG | 0201001_01.png | True |
+| 004_12.PNG | 0105004_01.png | True |
+| 002_11.PNG | 0118002_03.png | True |
+| 004_21.PNG | 0103004_03.png | True |
+| 004_04.PNG | 0105004_04.png | True |
+| 001_03.PNG | 0201001_01.png | True |
+| 004_21.PNG | 0124004_04.png | True |
+| 004_19.PNG | 0105004_02.png | True |
+| 002_02.PNG | 0118002_02.png | True |
+| 004_19.PNG | 0124004_04.png | True |
+| 004_16.PNG | 0103004_04.png | True |
+| 003_10.PNG | 0206003_01.png | True |
+| 002_05.PNG | 0118002_02.png | True |
+| 003_14.PNG | 0206003_04.png | True |
+| 001_24.PNG | 0119001_01.png | True |
+| 004_05.PNG | 0103004_02.png | True |
+| 001_02.PNG | 0119001_04.png | True |
+| 001_18.PNG | 0201001_01.png | True |
 ### Genuine vs genuine
+| Reference | Candidate | Match |
+|-----------|-----------|-------|
+| 003_20.PNG | 003_03.PNG | False |
+| 004_24.PNG | 004_12.PNG | False |
+| 002_11.PNG | 002_09.PNG | True |
+| 001_17.PNG | 001_14.PNG | False |
+| 002_05.PNG | 002_24.PNG | False |
+| 003_16.PNG | 003_04.PNG | False |
+| 003_02.PNG | 003_06.PNG | False |
+| 003_15.PNG | 003_14.PNG | False |
+| 002_21.PNG | 002_18.PNG | True |
+| 001_05.PNG | 001_02.PNG | False |
+| 004_02.PNG | 004_11.PNG | True |
+| 001_20.PNG | 001_16.PNG | False |
+| 002_06.PNG | 002_19.PNG | False |
+| 001_03.PNG | 001_21.PNG | False |
+| 002_01.PNG | 002_11.PNG | False |
+| 003_14.PNG | 003_21.PNG | True |
+| 003_23.PNG | 003_19.PNG | False |
+| 001_23.PNG | 001_08.PNG | False |
+| 001_16.PNG | 001_14.PNG | False |
+| 001_21.PNG | 001_20.PNG | False |
+| 004_15.PNG | 004_14.PNG | True |
+| 001_23.PNG | 001_07.PNG | False |
+| 002_22.PNG | 002_18.PNG | True |
+| 003_15.PNG | 003_10.PNG | False |
+| 004_13.PNG | 004_03.PNG | False |
+| 004_02.PNG | 004_11.PNG | True |
+| 001_07.PNG | 001_11.PNG | False |
+| 003_22.PNG | 003_19.PNG | True |
+| 002_21.PNG | 002_01.PNG | False |
+| 002_07.PNG | 002_16.PNG | False |
+| 003_13.PNG | 003_03.PNG | True |
+| 002_15.PNG | 002_18.PNG | True |
+| 003_14.PNG | 003_02.PNG | False |
+| 001_10.PNG | 001_05.PNG | False |
+| 002_11.PNG | 002_16.PNG | True |
+| 001_02.PNG | 001_12.PNG | False |
+| 004_24.PNG | 004_05.PNG | False |
+| 003_13.PNG | 003_16.PNG | False |
+| 001_12.PNG | 001_05.PNG | False |
+| 004_01.PNG | 004_23.PNG | False |
+| 003_13.PNG | 003_01.PNG | False |
+| 002_23.PNG | 002_04.PNG | False |
+| 003_08.PNG | 003_01.PNG | True |
+| 001_18.PNG | 001_09.PNG | False |
+| 001_10.PNG | 001_23.PNG | False |
+| 002_09.PNG | 002_20.PNG | True |
+| 002_15.PNG | 002_23.PNG | False |
+| 001_02.PNG | 001_15.PNG | False |
+| 001_10.PNG | 001_13.PNG | False |
+| 001_11.PNG | 001_02.PNG | False |
+| 003_19.PNG | 003_18.PNG | False |
+| 004_13.PNG | 004_06.PNG | False |
+| 001_13.PNG | 001_14.PNG | False |
+| 004_16.PNG | 004_13.PNG | False |
+| 002_11.PNG | 002_21.PNG | True |
+| 001_09.PNG | 001_06.PNG | False |
+| 001_05.PNG | 001_23.PNG | False |
+| 004_19.PNG | 004_06.PNG | False |
+| 001_17.PNG | 001_20.PNG | False |
+| 004_17.PNG | 004_15.PNG | False |
+| 004_05.PNG | 004_03.PNG | False |
+| 003_18.PNG | 003_16.PNG | False |
+| 004_05.PNG | 004_16.PNG | False |
+| 001_11.PNG | 001_12.PNG | False |
+| 001_20.PNG | 001_22.PNG | False |
+| 001_16.PNG | 001_07.PNG | False |
+| 003_17.PNG | 003_07.PNG | False |
+| 002_19.PNG | 002_17.PNG | False |
+| 003_13.PNG | 003_11.PNG | False |
+| 001_08.PNG | 001_07.PNG | False |
+| 004_17.PNG | 004_07.PNG | False |
+| 004_03.PNG | 004_15.PNG | False |
+| 003_13.PNG | 003_08.PNG | False |
+| 004_01.PNG | 004_14.PNG | False |
+| 003_23.PNG | 003_05.PNG | False |
+| 003_10.PNG | 003_21.PNG | False |
+| 001_19.PNG | 001_05.PNG | False |
+| 001_11.PNG | 001_09.PNG | False |
+| 004_05.PNG | 004_06.PNG | False |
+| 004_17.PNG | 004_23.PNG | False |
+| 004_11.PNG | 004_15.PNG | False |
+| 001_13.PNG | 001_06.PNG | False |
+| 001_18.PNG | 001_22.PNG | False |
+| 004_22.PNG | 004_19.PNG | False |
+| 001_01.PNG | 001_05.PNG | False |
+| 001_02.PNG | 001_16.PNG | False |
+| 004_13.PNG | 004_12.PNG | False |
+| 003_13.PNG | 003_08.PNG | False |
+| 002_20.PNG | 002_21.PNG | True |
+| 001_21.PNG | 001_10.PNG | False |
+| 001_04.PNG | 001_06.PNG | False |
+| 004_17.PNG | 004_12.PNG | False |
+| 002_18.PNG | 002_14.PNG | False |
+| 001_05.PNG | 001_03.PNG | False |
+| 002_02.PNG | 002_13.PNG | False |
+| 001_20.PNG | 001_13.PNG | False |
+| 003_15.PNG | 003_17.PNG | False |
+| 004_14.PNG | 004_13.PNG | False |
+| 003_15.PNG | 003_23.PNG | False |
+| 002_20.PNG | 002_04.PNG | True |
+### Summary metrics
 
-| Reference | Candidate | Match | Time (ms) |
-|-----------|-----------|-------|-----------|
-| 002_01.PNG | 002_13.PNG | True | 95 |
-| 001_19.PNG | 001_09.PNG | True | 33 |
-| 002_04.PNG | 002_09.PNG | True | 17 |
-| 003_17.PNG | 003_13.PNG | True | 21 |
-| 003_03.PNG | 003_06.PNG | True | 39 |
-| 003_18.PNG | 003_17.PNG | True | 21 |
-| 002_12.PNG | 002_13.PNG | True | 22 |
-| 002_18.PNG | 002_11.PNG | True | 20 |
-| 002_02.PNG | 002_04.PNG | True | 15 |
-| 003_01.PNG | 003_05.PNG | True | 16 |
-| 002_13.PNG | 002_14.PNG | True | 19 |
-| 002_06.PNG | 002_15.PNG | True | 18 |
-| 004_15.PNG | 004_23.PNG | True | 36 |
-| 002_06.PNG | 002_23.PNG | True | 17 |
-| 001_15.PNG | 001_08.PNG | True | 20 |
-| 002_23.PNG | 002_16.PNG | True | 18 |
-| 001_21.PNG | 001_22.PNG | True | 26 |
-| 004_21.PNG | 004_09.PNG | True | 14 |
-| 002_18.PNG | 002_11.PNG | True | 15 |
-| 002_07.PNG | 002_15.PNG | True | 18 |
-| 003_16.PNG | 003_23.PNG | True | 16 |
-| 003_23.PNG | 003_17.PNG | True | 19 |
-| 002_04.PNG | 002_11.PNG | True | 15 |
-| 004_05.PNG | 004_18.PNG | True | 15 |
-| 003_05.PNG | 003_12.PNG | True | 15 |
-| 004_21.PNG | 004_02.PNG | True | 15 |
-| 003_15.PNG | 003_10.PNG | True | 15 |
-| 004_11.PNG | 004_16.PNG | True | 18 |
-| 003_14.PNG | 003_01.PNG | True | 24 |
-| 001_10.PNG | 001_16.PNG | True | 23 |
+|               | Predicted Genuine | Predicted Forgery |
+|---------------|------------------|-------------------|
+| **Actual Genuine** | TP = 16 | FN = 84 |
+| **Actual Forgery** | FP = 0 | TN = 100 |
 
-### Detailed test report
+Accuracy = 0.58, Precision = 1.00, Recall = 0.16, F1-score = 0.28.
+AUC = 0.769, EER = 0.36 (thr ≈ -0.0068). Log-Loss = 0.688, ECE = 0.0049.
 
-All 30 forged comparisons were correctly detected using a threshold of 0.35. All
-30 genuine comparisons were accepted with the same threshold. The average
-verification time was about 18.8 ms for forged pairs and 22.5 ms for genuine
-pairs.
-
+![ROC](docs/eval_roc.png)
+![Reliability](docs/eval_reliability.png)
 ## Python vs .NET verification comparison
 
 The script `scripts/compare_results.py` reproduces the test pairs using both the
@@ -399,6 +554,279 @@ packages as well as the .NET SDK. The `so` directory must be available on the
 | 004_11.PNG | 004_16.PNG | False | False | 0.1399 | True | False | 0.1004 | True | False | -0.0395 |
 | 003_14.PNG | 003_01.PNG | False | True | 0.4215 | False | True | 0.4875 | False | False | 0.0661 |
 | 001_10.PNG | 001_16.PNG | False | False | 0.1584 | True | False | 0.1730 | True | False | 0.0146 |
+
+## Metriche di Base
+
+Qui di seguito sono riportate le principali statistiche calcolate sul dataset di valutazione dopo la calibrazione (T=1.008) e la scansione di 300 soglie.
+
+### Statistica descrittiva
+
+| Classe  | Count | Mean | Std Dev | Min | 25° Perc | Median | 75° Perc | Max |
+|---------|------:|-----:|--------:|----:|---------:|-------:|---------:|----:|
+| Genuine | 100 | 0.0082 | 0.0103 | 0.0005 | 0.0014 | 0.0037 | 0.0125 | 0.0454 |
+| Forgery | 100 | 0.0313 | 0.0324 | 0.0015 | 0.0040 | 0.0166 | 0.0506 | 0.1254 |
+
+### Confusion matrix (thr = 0.0018)
+
+|               | Predicted Genuine | Predicted Forgery |
+|---------------|------------------|-------------------|
+| **Actual Genuine** | TP = 32 | FN = 68 |
+| **Actual Forgery** | FP = 1 | TN = 99 |
+
+**Accuracy** = 0.66, **Precision** = 0.97, **Recall** = 0.32, **F1‑score** = 0.48
+## Metriche Avanzate
+
+AUC = 0.769, EER = 0.36 (soglia ≈ -0.0067). Precision@1%FPR ≈ 0.97.
+**Bhattacharyya distance** = 0.3903, **Log‑Loss** = 0.699, **ECE** = 0.0049.
+
+Eseguendo una scansione di 300 soglie si individua il valore **0.0018** che mantiene **FPR ≈ 1%** con **Recall 32%** e **Precision 97%**.
+
+### Tabella di tracking
+
+| Metodo   | Thr   | TP   | FN   | FP   | TN   | Prec   | Rec   | F1    | FPR   | EER   | AUC   |
+|----------|------:|-----:|-----:|-----:|-----:|-------:|------:|------:|------:|------:|------:|
+| Baseline | 0.35  | 1048 | 56   | 657  | 375  | 0.6147 | 0.9493 | 0.7462 | 0.6365 | 0.2818 | 0.8032 |
+| EER Thr  | 0.1993 | 793  | 311  | 291  | 741  | 0.7315 | 0.7183 | 0.7249 | 0.2822 | 0.2818 | 0.8032 |
+
+### Tabella di raccolta risultati
+
+| Metodo   | Mean  | Std   | AUC   | EER   | Prec@1%FPR | Prec@5%FPR | ECE  | Log‑Loss |
+|----------|------:|------:|------:|------:|-----------:|-----------:|-----:|---------:|
+| SigNet   | 0.2356 | 0.1567 | 0.8032 | 0.2818 | 1.0000 | 1.0000 | 0.1068 | 0.6041 |
+| SigNet‑F | 0.1500 | 0.1064 | 0.8303 | 0.2734 | 1.0000 | 1.0000 | 0.1816 | 0.6295 |
+| avg      | 0.1928 | 0.1282 | 0.8214 | 0.2701 | 1.0000 | 1.0000 | 0.1413 | 0.6141 |
+| w=0.0    | 0.1500 | 0.1064 | 0.8303 | 0.2734 | 1.0000 | 1.0000 | 0.1816 | 0.6295 |
+| min      | 0.1485 | 0.1055 | 0.8319 | 0.2692 | 1.0000 | 1.0000 | 0.1825 | 0.6298 |
+| max      | 0.2372 | 0.1566 | 0.8045 | 0.2809 | 1.0000 | 1.0000 | 0.1078 | 0.6033 |
+
+La ricerca a griglia su `w` ha indicato **w = 0.0** (ossia l'uso del solo
+SigNet‑F) come opzione con AUC più elevata su questo dataset di esempio.
+Tuttavia lo score **min** risulta complessivamente migliore con AUC 0.8319 e EER 0.2692.
+
+### Risultati post-calibrazione
+
+Applicando la **temperature scaling** allo score `s_min` si ottiene:
+
+| Parametro | Valore |
+|-----------|-------:|
+| Temperatura `T` | 1.008 |
+| Log‑Loss | 0.699 |
+| ECE | 0.021 |
+| Soglia FPR=1% | 0.0018 |
+| Precision@1%FPR | 0.97 |
+| Recall@1%FPR | 0.32 |
+| Soglia FPR=5% | 0.0018 |
+| Precision@5%FPR | 0.97 |
+| Recall@5%FPR | 0.32 |
+| AUC | 0.769 |
+
+Lo standard deviation medio delle distanze genuine per autore (cross‑writer)
+è **0.0049**, indice di buona stabilità.
+
+### Implementazione finale in C#
+
+Il metodo scelto per la produzione sfrutta la fusione **min** tra SigNet e
+SigNet‑F con una semplice calibrazione di temperatura. Per ogni coppia di firme
+si calcolano le distanze `d1` e `d2` dai due modelli, quindi:
+
+```csharp
+float sMin = Math.Min(d1, d2);
+float sCal = sMin / 1.008f;        // temperatura ottimizzata sul dev‑set
+bool isForgery = sCal > 0.0018f;   // FPR ≈ 1%
+```
+
+Se `isForgery` è `false` la firma viene giudicata genuina. Questa configurazione
+
+| Passo | Operazione |
+|------:|------------|
+| 1 | Estrai `d1` con SigNet e `d2` con SigNet‑F |
+| 2 | Calcola `s_min = min(d1, d2)` |
+| 3 | Applica temperature scaling: `s_cal = s_min / 1.008` |
+| 4 | Se `s_cal` ≤ 0.0010 → Genuine, altrimenti Forgery |
+è risultata la migliore per rapporto AUC/EER e per la ridotta percentuale di
+falsi positivi dopo calibrazione.
+
+I risultati completi della scansione sono disponibili nel file [`threshold_sweep_results.csv`](docs/threshold_sweep_results.csv).
+
+### Grafici di calibrazione e ROC
+
+![ROC](docs/roc.png)
+![Reliability](docs/reliability.png)
+
+## Descrizione delle metriche
+
+Le tabelle precedenti riportano le statistiche chiave calcolate tramite il test
+`MetricsTests` e la CLI `SigMetrics`. Di seguito viene riepilogato come
+ottenere tali misure e il significato dei vari indicatori.
+
+### Calcolo rapido con Python
+
+
+Se vuoi generare rapidamente questi numeri in Python, ecco uno snippet di esempio:
+
+```python
+import pandas as pd
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
+
+# supponiamo tu abbia un DataFrame df con colonne ['label', 'distance']
+# dove label è 1 per genuine, 0 per forgery
+threshold = 0.35
+df['pred'] = (df['distance'] <= threshold).astype(int)
+
+# descrittive
+stats = df.groupby('label')['distance'].describe(percentiles=[.25, .5, .75])
+print(stats[['count','mean','std','min','25%','50%','75%','max']])
+
+# confusion matrix
+y_true = df['label']
+y_pred = df['pred']
+tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+print(f"TP={tp}, TN={tn}, FP={fp}, FN={fn}")
+
+# metriche
+print("Accuracy:", (tp+tn)/len(df))
+print("Precision:", precision_score(y_true, y_pred))
+print("Recall:", recall_score(y_true, y_pred))
+print("F1-score:", f1_score(y_true, y_pred))
+```
+
+### 3.1 Calcolo rapido tramite CLI
+
+È disponibile il comando `.NET` **SigMetrics** per calcolare le stesse
+statistiche su una directory strutturata come `data`.
+
+Esempio d'uso:
+
+```bash
+/root/dotnet/dotnet run --project SigMetrics/SigMetrics.csproj data 0.35 grid
+```
+
+Il terzo parametro può essere un valore di `w` (es. `0.7`) oppure la parola
+`grid` per eseguire automaticamente la ricerca su `w ∈ {0.0, 0.1, …, 1.0}`.
+Il programma stampa le metriche per `SigNet`, `SigNet-F` e per tutti i metodi
+di fusione.
+
+## 1. Score‑level Fusion tra i due modelli
+
+Fai girare la stessa coppia di firme su entrambi i modelli e combina le due distanze `d₁` e `d₂` in un unico score `s`:
+
+- **Media aritmetica**
+
+```
+s = (d₁ + d₂) / 2
+```
+
+- **Media pesata**
+
+```
+s = w·d₁ + (1 - w)·d₂
+```
+
+Stima `w` su un set di validazione (ad esempio una grid search in `[0,1]`).
+
+- **Min/Max**
+
+```
+s = min(d₁, d₂)
+```
+
+oppure
+
+```
+s = max(d₁, d₂)
+```
+
+Scegli "min" se vuoi ridurre i falsi negativi, "max" se preferisci diminuire i falsi positivi.
+
+---
+
+## 2. Calibrazione & score normalization
+
+Prima di applicare la soglia, uniforma le scale dei due modelli:
+
+- **Z‑norm**
+
+```
+s' = (s - μ) / σ
+```
+
+con `μ, σ` calcolati su un corpus di riferimento.
+
+- **Logistic Calibration**
+
+Addestra su un set di sviluppo una funzione
+
+```
+p = σ(a·s + b)
+```
+
+per trasformare la distanza `s` in una probabilità calibrata.
+
+---
+
+## 3. Metriche da rilevare
+
+### 3.1 Classificazione
+
+- **TPR (Recall)** = TP / (TP + FN)
+- **FPR** = FP / (FP + TN)
+- **Precision** = TP / (TP + FP)
+- **Accuracy** = (TP + TN) / (TP + TN + FP + FN)
+- **F1‑score** = 2·(Precision·Recall) / (Precision + Recall)
+
+### 3.2 Separabilità globale
+
+- **ROC curve** e **AUC**
+- **Equal Error Rate (EER)**: soglia per cui FPR = FNR
+
+### 3.3 Overlap delle distribuzioni
+
+Per le distanze (o gli score finali) delle due classi:
+
+- **Mean** e **Std Dev**
+- **25°**, **50°**, **75° Percentili**
+- **Bhattacharyya distance** o **Kullback‑Leibler divergence**
+
+### 3.4 Calibrazione
+
+- **Expected Calibration Error (ECE)**
+- **Negative Log‑Likelihood (NLL)** / **Log‑Loss**
+
+### 3.5 Robustezza
+
+- **Stabilità del punteggio**: `std(s)` su ripetizioni
+- **Sensitivity to noise**: variazione di `s` con rumore o cambiamenti di binarizzazione
+
+## Prossima fase: cosa fare (senza fornire implementazioni)
+
+1. **Prepara il tuo set di validazione**
+   - Coppie di firme `(imgA, imgB)` etichettate come `genuine` o `forgery`.
+
+2. **Estrai le distanze da entrambi i modelli**
+   - Calcola `d1` da **SigNet** e `d2` da **SigNet‑F (λ=0.95)` per ogni coppia.
+
+3. **Definisci i punteggi di ensemble**
+   - `s_avg` = (d1 + d2) / 2
+   - `s_w`   = w·d1 + (1–w)·d2  (ottimizza `w` su set di validazione)
+   - `s_min` = min(d1, d2)
+   - `s_max` = max(d1, d2)
+
+4. **Calcola le metriche per ciascun metodo**
+   - Statistiche descrittive di `{d1, d2, s_avg, s_w, s_min, s_max}`
+   - Curve ROC, AUC e soglie a EER
+   - Confusion matrix a più soglie (0.35, EER, FPR = 1% e 5%)
+   - Precision a FPR fissato (1% e 5%)
+
+5. **Valuta la calibrazione** *(solo per `s_avg` e `s_w`)*
+   - Expected Calibration Error e Log‑Loss
+   - Calibration curve / reliability plot
+
+6. **Confronta i risultati**
+   - Confronto di AUC ed EER tra SigNet, SigNet‑F ed ensemble
+   - Miglioramento della distanza tra le distribuzioni genuine e forgery
+
+| min          | …    | …   | …   | …   | …          | …          | –   | –        |
+| max          | …    | …   | …   | …   | …          | …          | –   | –        |
 ## Meta‑learning
 
 Use the `sigver.metalearning.train` script to train a meta‑learner:
