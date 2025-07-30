@@ -1,0 +1,2 @@
+thr_low,thr_high,g_percentile,f_percentile,recall_genuine,recall_forgery,grey_pct,TP,FN,FP,TN
+0.007128251324404765,0.008799827227182535,65,35,0.65,0.65,0.025,65,30,35,65
