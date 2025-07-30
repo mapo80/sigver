@@ -558,6 +558,45 @@ Per le distanze (o gli score finali) delle due classi:
 
 - **Stabilità del punteggio**: `std(s)` su ripetizioni
 - **Sensitivity to noise**: variazione di `s` con rumore o cambiamenti di binarizzazione
+
+## Prossima fase: cosa fare (senza fornire implementazioni)
+
+1. **Prepara il tuo set di validazione**
+   - Coppie di firme `(imgA, imgB)` etichettate come `genuine` o `forgery`.
+
+2. **Estrai le distanze da entrambi i modelli**
+   - Calcola `d1` da **SigNet** e `d2` da **SigNet‑F (λ=0.95)` per ogni coppia.
+
+3. **Definisci i punteggi di ensemble**
+   - `s_avg` = (d1 + d2) / 2
+   - `s_w`   = w·d1 + (1–w)·d2  (ottimizza `w` su set di validazione)
+   - `s_min` = min(d1, d2)
+   - `s_max` = max(d1, d2)
+
+4. **Calcola le metriche per ciascun metodo**
+   - Statistiche descrittive di `{d1, d2, s_avg, s_w, s_min, s_max}`
+   - Curve ROC, AUC e soglie a EER
+   - Confusion matrix a più soglie (0.35, EER, FPR = 1% e 5%)
+   - Precision a FPR fissato (1% e 5%)
+
+5. **Valuta la calibrazione** *(solo per `s_avg` e `s_w`)*
+   - Expected Calibration Error e Log‑Loss
+   - Calibration curve / reliability plot
+
+6. **Confronta i risultati**
+   - Confronto di AUC ed EER tra SigNet, SigNet‑F ed ensemble
+   - Miglioramento della distanza tra le distribuzioni genuine e forgery
+
+### Tabella di raccolta risultati
+
+| Metodo       | Mean | Std | AUC | EER | Prec@1%FPR | Prec@5%FPR | ECE | Log‑Loss |
+|--------------|------|-----|-----|-----|------------|------------|-----|----------|
+| SigNet       | …    | …   | …   | …   | …          | …          | –   | –        |
+| SigNet‑F     | …    | …   | …   | …   | …          | …          | –   | –        |
+| avg          | …    | …   | …   | …   | …          | …          | –   | –        |
+| w=0.x        | …    | …   | …   | …   | …          | …          | …   | …        |
+| min          | …    | …   | …   | …   | …          | …          | –   | –        |
+| max          | …    | …   | …   | …   | …          | …          | –   | –        |
 ## Meta‑learning
 
 Use the `sigver.metalearning.train` script to train a meta‑learner:
