@@ -482,6 +482,21 @@ print("Recall:", recall_score(y_true, y_pred))
 print("F1-score:", f1_score(y_true, y_pred))
 ```
 
+### 3.1 Calcolo rapido tramite CLI
+
+È disponibile il comando `.NET` **SigMetrics** per calcolare le stesse
+statistiche su una directory strutturata come `data`.
+
+Esempio d'uso:
+
+```bash
+/root/dotnet/dotnet run --project SigMetrics/SigMetrics.csproj data 0.35 0.7
+```
+
+Il terzo parametro è opzionale e specifica il peso `w` della media pesata nella
+fusion dei due modelli (default 0.5). Il programma stampa le metriche per
+`SigNet`, `SigNet-F` e per i vari metodi di fusione.
+
 ## 1. Score‑level Fusion tra i due modelli
 
 Fai girare la stessa coppia di firme su entrambi i modelli e combina le due distanze `d₁` e `d₂` in un unico score `s`:
