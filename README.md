@@ -403,14 +403,14 @@ packages as well as the .NET SDK. The `so` directory must be available on the
 ## Signature Verification – Metriche di Base
 
 Qui di seguito riporto le statistiche descrittive delle distanze coseno e la
-confusion matrix al threshold di **0.35**.
+confusion matrix ai threshold di **0.35** e **0.0056** (EER).
 
 ### 1. Statistica descrittiva
 
 | Classe    | Count | Mean | Std Dev | Min | 25° Perc | Median | 75° Perc | Max |
 |-----------|-------|------|---------|-----|----------|--------|----------|-----|
-| Genuine   | 1104 | 0.0092 | 0.0135 | 0.0003 | 0.0018 | 0.0033 | 0.0088 | 0.0713 |
-| Forgery   | 1032 | 0.0266 | 0.0327 | 0.0003 | 0.0044 | 0.0105 | 0.0381 | 0.1519 |
+| Genuine   | 1104 | 0.1591 | 0.0983 | 0.0212 | 0.0851 | 0.1366 | 0.2156 | 0.5887 |
+| Forgery   | 1032 | 0.3174 | 0.1660 | 0.0353 | 0.1901 | 0.2736 | 0.4313 | 0.7906 |
 
 - **Count** (𝑁): numero di coppie testate
 - **Mean**, **Std Dev**, **Min**, **Max**: media, deviazione standard, valore minimo e massimo della distanza coseno
@@ -439,6 +439,18 @@ Per il dataset di esempio: **Accuracy** = 0.5169, **Precision** = 0.5169,
 **Recall** = 1.0000, **F1-score** = 0.6815. Ulteriori misure: **AUC** = 0.7324,
 **EER** = 0.3343 (soglia 0.0056), **Bhattacharyya distance** = 0.1635,
 **Log‑Loss** = 0.6669 e **ECE** = 0.0658.
+
+### 2.1 Confusion Matrix (threshold = 0.0056)
+
+|               | Predicted Genuine | Predicted Forgery |
+|---------------|------------------|-------------------|
+| **Actual Genuine** | TP = 0             | FN = 1104        |
+| **Actual Forgery** | FP = 0             | TN = 1032        |
+
+Per lo stesso dataset a soglia 0.0056: **Accuracy** = 0.4831, **Precision** = 0,
+**Recall** = 0, **F1-score** = 0.0000. Ulteriori misure: **AUC** = 0.8032,
+**EER** = 0.2818 (thr ≈ 0.1993), **Precision@1%FPR** = 0.9389,
+**Precision@5%FPR** = 0.8921, **Bhattacharyya distance** = 0.2339.
 
 ### 3. Come calcolare queste metriche
 
@@ -589,11 +601,18 @@ Per le distanze (o gli score finali) delle due classi:
    - Confronto di AUC ed EER tra SigNet, SigNet‑F ed ensemble
    - Miglioramento della distanza tra le distribuzioni genuine e forgery
 
+### Tabella di tracking
+
+| Metodo     | Thr   | TP   | FN   | FP   | TN   | Prec   | Rec   | F1    | FPR   | EER   | AUC   |
+|------------|-------|------|------|------|------|--------|-------|-------|-------|-------|-------|
+| Baseline   | 0.35  | 1104 | 0    | 1032 | 0    | 0.5169 | 1.0000 | 0.6815 | 1.0000 | 0.3343 | 0.7324 |
+| EER Thr    | 0.0056 | 0    | 1104 | 0    | 1032 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.2818 | 0.8032 |
+
 ### Tabella di raccolta risultati
 
 | Metodo       | Mean | Std | AUC | EER | Prec@1%FPR | Prec@5%FPR | ECE | Log‑Loss |
 |--------------|------|-----|-----|-----|------------|------------|-----|----------|
-| SigNet       | …    | …   | …   | …   | …          | …          | –   | –        |
+| SigNet       | 0.2356 | 0.1567 | 0.8032 | 0.2818 | 0.9389 | 0.8921 | –   | –        |
 | SigNet‑F     | …    | …   | …   | …   | …          | …          | –   | –        |
 | avg          | …    | …   | …   | …   | …          | …          | –   | –        |
 | w=0.x        | …    | …   | …   | …   | …          | …          | …   | …        |

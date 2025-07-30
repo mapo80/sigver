@@ -83,7 +83,8 @@ public class MetricsTests
         var gStats = Stats(genuineDists);
         var fStats = Stats(forgeryDists);
 
-        double threshold = 0.35;
+        // evaluate at the EER threshold provided in the README
+        double threshold = 0.0056;
         int tp = genuineDists.Count(d => d <= threshold);
         int fn = genuineDists.Count - tp;
         int fp = forgeryDists.Count(d => d <= threshold);
@@ -95,9 +96,9 @@ public class MetricsTests
         Console.WriteLine($"TP={tp} FN={fn} FP={fp} TN={tn}");
 
         double accuracy = (double)(tp + tn) / (tp + tn + fp + fn);
-        double precision = tp / (double)(tp + fp);
-        double recall = tp / (double)(tp + fn);
-        double f1 = 2 * precision * recall / (precision + recall);
+        double precision = tp + fp == 0 ? 0 : tp / (double)(tp + fp);
+        double recall = tp + fn == 0 ? 0 : tp / (double)(tp + fn);
+        double f1 = precision + recall == 0 ? 0 : 2 * precision * recall / (precision + recall);
         Console.WriteLine($"Accuracy={accuracy:F4} Precision={precision:F4} Recall={recall:F4} F1={f1:F4}");
 
         var all = genuineDists.Select(d => (dist: d, label: 1)).Concat(forgeryDists.Select(d => (dist: d, label: 0)))
@@ -106,6 +107,7 @@ public class MetricsTests
         int N = forgeryDists.Count;
         double prevFpr = 0, prevTpr = 0, auc = 0;
         double eerDiff = double.MaxValue; double eer = 0; double eerThr = threshold;
+        double thr1 = double.NaN, thr5 = double.NaN;
         int tpCount = 0, fpCount = 0;
         foreach (var item in all)
         {
@@ -120,9 +122,26 @@ public class MetricsTests
             {
                 eerDiff = diff; eer = (fprVal + fnrVal) / 2; eerThr = item.dist;
             }
+            if (double.IsNaN(thr1) && fprVal >= 0.01) thr1 = item.dist;
+            if (double.IsNaN(thr5) && fprVal >= 0.05) thr5 = item.dist;
         }
         auc = Math.Clamp(auc, 0, 1);
         Console.WriteLine($"AUC={auc:F4} EER={eer:F4} thr@EER={eerThr:F4}");
+
+        int Conf(double thr, out double prec)
+        {
+            int tp2 = genuineDists.Count(d => d <= thr);
+            int fn2 = genuineDists.Count - tp2;
+            int fp2 = forgeryDists.Count(d => d <= thr);
+            int tn2 = forgeryDists.Count - fp2;
+            prec = tp2 + fp2 == 0 ? 0 : tp2 / (double)(tp2 + fp2);
+            return tp2 + tn2;
+        }
+
+        double prec1 = 0, prec5 = 0;
+        if (!double.IsNaN(thr1)) Conf(thr1, out prec1);
+        if (!double.IsNaN(thr5)) Conf(thr5, out prec5);
+        Console.WriteLine($"Precision@FPR1%={prec1:F4} Precision@FPR5%={prec5:F4}");
 
         double bhatta = 0.25 * Math.Log(0.25 * (gStats.std*gStats.std/(fStats.std*fStats.std) + fStats.std*fStats.std/(gStats.std*gStats.std) + 2))
                          + 0.25 * (gStats.mean - fStats.mean) * (gStats.mean - fStats.mean) / (gStats.std*gStats.std + fStats.std*fStats.std);
