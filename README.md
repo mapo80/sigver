@@ -58,6 +58,14 @@ centered on a 1360×840 canvas, cleaned with Otsu thresholding, resized to
 validates the output, throwing an exception when the model returns NaN or
 infinite values.
 
+### Post‑processing in C#
+Once the 2048‑dimensional vector has been produced by the ONNX model it is
+normalised with L2 norm. The SDK exposes `SigVerifier.CosineDistance` which
+computes `1 - dot(v1, v2)` between two normalised feature vectors. The helper
+method `IsForgery` extracts and normalises features for two images, calculates
+their cosine distance and compares it against a configurable threshold
+(default 0.35) to decide whether the candidate signature is forged.
+
 The unit tests in `SigVerSdk.Tests` illustrate a simple verification scenario comparing two signatures.
 
 If the required SDK is missing, run the provided install script before building:
@@ -451,12 +459,12 @@ Altre misure: **AUC** = 0.8032, **EER** = 0.2818 (thr ≈ 0.1993),
 
 | Metodo   | Mean  | Std   | AUC   | EER   | Prec@1%FPR | Prec@5%FPR | ECE  | Log‑Loss |
 |----------|------:|------:|------:|------:|-----------:|-----------:|-----:|---------:|
-| SigNet   | 0.2356 | 0.1567 | 0.8032 | 0.2818 | 0.9389 | 0.8921 | –   | –       |
+| SigNet   | 0.2356 | 0.1567 | 0.8032 | 0.2818 | 1.0000 | 1.0000 | 0.1068 | 0.6041 |
 | SigNet‑F | 0.1500 | 0.1064 | 0.8303 | 0.2734 | 1.0000 | 1.0000 | 0.1816 | 0.6295 |
-| avg      | …    | …    | …    | …    | …      | …      | –   | –       |
-| w=0.x    | …    | …    | …    | …    | …      | …      | …   | …       |
-| min      | …    | …    | …    | …    | …      | …      | –   | –       |
-| max      | …    | …    | …    | …    | …      | …      | –   | –       |
+| avg      | 0.1928 | 0.1282 | 0.8214 | 0.2701 | 1.0000 | 1.0000 | 0.1413 | 0.6141 |
+| w=0.5    | 0.1928 | 0.1282 | 0.8214 | 0.2701 | 1.0000 | 1.0000 | 0.1413 | 0.6141 |
+| min      | 0.1485 | 0.1055 | 0.8319 | 0.2692 | 1.0000 | 1.0000 | 0.1825 | 0.6298 |
+| max      | 0.2372 | 0.1566 | 0.8045 | 0.2809 | 1.0000 | 1.0000 | 0.1078 | 0.6033 |
 
 ## Descrizione delle metriche
 
